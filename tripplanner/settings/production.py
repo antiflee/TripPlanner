@@ -22,9 +22,12 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__fil
 SECRET_KEY = 'htx5(4yceoy0z$xal%0r(^_iqqzg+jrpz&n1*-f5_qf&^07_54'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    'tripflask.herokuapp.com',
+    '127.0.0.1',
+    ]
 
 
 # Application definition
@@ -144,6 +147,11 @@ MEDIA_URL = '/media/'
 
 
 ######
-GOOGLESTATICMAPAPIKEY = "AIzaSyAWM9aNpToSHrFcVxApdTJh5YK45HG6OFc"   # move it to env var later.
-GOOGLEMAPAPIKEY = "AIzaSyAoX1pdP9-vueaY2JVmIxViYdUdY1DbHJM"
-GOOGLEMAPTIMEZONEAPIKEY = "AIzaSyC5Ud8oMld9b4sSMZIgRWjClQQKCmij1oI"
+GOOGLEMAPAPIKEY = os.environ['GOOGLE_MAP_API_KEY']
+GOOGLESTATICMAPAPIKEY = os.environ['GOOGLE_STATIC_MAP_API_KEY']
+GOOGLEMAPTIMEZONEAPIKEY = os.environ['GOOGLE_TIMEZONE_API_KEY']
+
+#######
+import dj_database_url
+db_from_env = dj_database_url.config(conn_max_age=500)
+DATABASES['default'].update(db_from_env)
