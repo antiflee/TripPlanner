@@ -24,8 +24,10 @@ SECRET_KEY = 'htx5(4yceoy0z$xal%0r(^_iqqzg+jrpz&n1*-f5_qf&^07_54'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
-
+ALLOWED_HOSTS = [
+    'tripflask.herokuapp.com',
+    '127.0.0.1',
+    ]
 
 # Application definition
 
