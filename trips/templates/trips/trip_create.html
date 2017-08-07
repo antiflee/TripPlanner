@@ -778,7 +778,6 @@
     geocoder.geocode({'location': latLng}, function(results, status) {
       if (status === 'OK') {
         if (results[1]) {
-          // console.log(results)
           for (var obj of results[1]['address_components']) {
             switch (obj['types'][0]) {
               case 'establishment':
@@ -871,13 +870,11 @@
                                                   suppressBicyclingLayer: true
                                                 });
           directionsDisplay.setMap(map);
-          // console.log(response);
 
           this_.travelInfoToHere.encodedPolyline = response['routes'][0]['overview_polyline'].replace(/\\/g, "\\\\")
           // For Directions Leg, see: https://developers.google.com/maps/documentation/javascript/directions#Legs
           var leg = response['routes'][0]['legs'][0];
           if (leg != null) {
-            // console.log(leg);
             this_.travelInfoToHere.travelTime.text         = leg['duration']['text'];
             this_.travelInfoToHere.travelTime.seconds      = leg['duration']['value'];
             this_.travelInfoToHere.travelDist.text         = leg['distance']['text'];
@@ -1181,7 +1178,6 @@
   function addDragEventListenerToMarker(marker) {
     // Event when dragging this marker.
     google.maps.event.addListener(marker, 'dragstart', function(event, marker){
-      // console.log(this.icon[this.icon.indexOf("chld=")+1])
       // Find the index of the marker
       var markerIconURL = this.icon;
       var j = this.icon.indexOf("chld=")+5;
@@ -1215,7 +1211,6 @@
       url: googleGeoCodingUrl,
       method: "GET",
       success: function(data) {
-        // console.log(data);
         if (data['status'] == 'OK') {
           // find latLng
           var latVal = data['results'][0]['geometry']['location']['lat'];
@@ -1242,8 +1237,6 @@
         addingPlaceAllowed = true;
       },
       error: function(data) {
-        // console.log('error');
-        // console.log(data);
         tempCustomName = "";
         addingPlaceAllowed = true;
       }
@@ -2380,8 +2373,6 @@
 
   function saveTrip() {
     var this_trip = createTripJSON();
-    // console.log("Data to send:");
-    // console.log(this_trip);
     $("#saveTripButton").text("Saving...");
     $("#submitTripButton").attr("disabled", "true");
 
@@ -2390,7 +2381,6 @@
         method: "POST",
         data: this_trip,
         success: function(data) {
-          // console.log(data);
           // window.onbeforeunload = undefined;
           // window.location.href="/trip/";
           if (data['status'] == 'OK'){
@@ -2406,8 +2396,6 @@
           $("#submitTripButton").removeAttr("disabled");
         },
         error: function(data) {
-          // console.log(data.statusText)
-          // console.log(data.status)
           $("#submitTripButton").attr("disabled", "false");
         }
       })
@@ -2417,7 +2405,6 @@
   function submitTrip() {
     var this_trip = createTripJSON();
     // console.log("Data to send:");
-    console.log(this_trip);
     $("#submitTripButton").text("Submitting...");
     $("#saveTripButton").attr("disabled", "false");
 
@@ -2557,7 +2544,6 @@
   $(document.body).on("click", ".auto_set_time_hereafter_icon", function(e) {
     e.preventDefault();
     e.stopPropagation();
-    console.log("auto set clicked.")
     var index = $(this).parent().attr("data-index");
     autoSetTimeForPlacesAfter(places[index]);
   })
@@ -2661,7 +2647,6 @@
       new_place.infowindow                              = marker.infowindow;
       new_place.placeTagLabelColor                      = "{{place.tag_color}}";
       {% if not forloop.first %}
-        // console.log(places)
         new_place.note                                  = "{{ place.note }}";
         new_place.prevPlace                             = places[places.length-1];
         places[places.length-1].nextPlace               = new_place;

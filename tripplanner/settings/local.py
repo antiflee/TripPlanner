@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/1.11/ref/settings/
 
 import os
 
+
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -44,6 +45,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'accounts',
     'crispy_forms',
+    'storages',
 ]
 
 MIDDLEWARE = [
@@ -155,3 +157,46 @@ GOOGLEMAPTIMEZONEAPIKEY = os.environ['GOOGLE_TIMEZONE_API_KEY']
 import dj_database_url
 db_from_env = dj_database_url.config(conn_max_age=500)
 DATABASES['default'].update(db_from_env)
+
+#######
+# AWS_STORAGE_BUCKET_NAME = 'tripflask-asset'
+# AWS_ACCESS_KEY_ID = os.environ['AWS_ACCESS_KEY_ID']
+# AWS_SECRET_ACCESS_KEY = os.environ['AWS_SECRET_ACCESS_KEY']
+#
+# # Tell django-storages that when coming up with the URL for an item in S3 storage, keep
+# # it simple - just use this domain plus the path. (If this isn't set, things get complicated).
+# # This controls how the `static` template tag from `staticfiles` gets expanded, if you're using it.
+# # We also use it in the next setting.
+# AWS_S3_CUSTOM_DOMAIN = 's3.us-east-2.amazonaws.com/{}'.format(AWS_STORAGE_BUCKET_NAME)
+#
+# # This is used by the `static` template tag from `static`, if you're using that. Or if anything else
+# # refers directly to STATIC_URL. So it's safest to always set it.
+# # https://s3.us-east-2.amazonaws.com/tripflask-asset
+# STATIC_URL = "https://{}/".format(AWS_S3_CUSTOM_DOMAIN)
+#
+# # Tell the staticfiles app to use S3Boto storage when writing the collected static files (when
+# # you run `collectstatic`).
+# STATICFILES_STORAGE = 'storages.backends.s3boto.S3BotoStorage'
+
+############
+from tripplanner.aws.conf import *
+
+############
+# set S3 as the place to store your files.
+DEFAULT_FILE_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
+STATICFILES_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
+AWS_ACCESS_KEY_ID = os.environ["AWS_ACCESS_KEY_ID"]
+AWS_SECRET_ACCESS_KEY = os.environ["AWS_SECRET_ACCESS_KEY"]
+AWS_STORAGE_BUCKET_NAME = "tripflask-asset"
+AWS_QUERYSTRING_AUTH = False #This will make sure that the file URL does not have unnecessary parameters like your access key.
+AWS_S3_CUSTOM_DOMAIN = AWS_STORAGE_BUCKET_NAME + '.s3.amazonaws.com'
+#static media settings
+STATIC_URL = 'https://' + AWS_STORAGE_BUCKET_NAME + '.s3.amazonaws.com/'
+MEDIA_URL = STATIC_URL + 'media/'
+STATICFILES_DIRS = (os.path.join(BASE_DIR, "static-storage"))
+STATIC_ROOT = "static-serve"
+ADMIN_MEDIA_PREFIX = STATIC_URL + 'admin/'
+STATICFILES_FINDERS = (
+    'django.contrib.staticfiles.finders.FileSystemFinder',
+    'django.contrib.staticfiles.finders.AppDirectoriesFinder',
+)
