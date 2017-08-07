@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+
+{% block styles %}
+<style media="screen">
+  .thumbnail {
+    height: 327px;
+  }
+
+  .thumbnail_img_div {
+     height: 171px;
+     width: 245px;
+     overflow: hidden;
+  }
+
+  .nav.nav-tabs {
+    margin-bottom: 10px;
+    font-size: 1.3em;
+  }
+
+  #following_user_list, #followed_by_user_list {
+    display: none;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="row">
+    <div class="col-sm-3 col-xs-12">
+      <h1>
+        {{ object.username }}
+        {% if request.user.is_authenticated %}
+          {% if diff_user %}
+              <a class='btn btn-default' href="/profiles/{{ this_username }}/follow" style="margin-left:10px;">
+                {% if following %}Unfollow{% else %}Follow{% endif %}
+              </a>
+          {% endif %}
+        {% endif %}
+      </h1>
+      <hr>
+      <p></p>
+
+      {% if request.user.is_authenticated %}
+        <button class="btn btn-default btn-block" onclick="toggle_following_user_list()">
+          Following <strong>{{ object.profile.get_following.count }}</strong>
+        </button>
+        <div class="row">
+          <div id="following_user_list" class="col-sm-12">
+            <ul class="list-group">
+              {% for user in object.profile.get_following  %}
+                <a class="list-group-item" href="/profiles/{{ user.username }}">
+                  {{ user.username }}
+                </a>
+              {% empty %}
+              <!-- <h4>Not following any users</h4>-->
+              {% endfor %}
+            </ul>
+          </div>
+        </div>
+
+        <br>
+
+        <button class="btn btn-default btn-block" onclick="toggle_followed_by_user_list()">
+          Followed By  <strong>{{ object.followed_by.all.count }}</strong>
+        </button>
+        <div class="row">
+          <div id="followed_by_user_list" class="col-sm-12">
+            <ul class="list-group">
+              {% for profile in object.followed_by.all %}
+                <a class="list-group-item" href="/profiles/{{ profile.user.username }}">
+                  {{ profile.user.username }}
+                </a>
+              {% endfor %}
+            </ul>
+          </div>
+        </div>
+
+    {% else %}
+      <p> <a href="/login/">Login</a> or <a href="/register/">Register</a> to follow this user! </p>
+    {% endif %}
+
+    </div>
+
+    <div class="col-sm-9 col-xs-12">
+      <div class="">
+        <ul class="nav nav-tabs" role="tablist">
+          <li class="nav-item">
+            <a class="nav-link active" id="tab-1" data-toggle="tab" href="#" onclick="loadTripContainer('trip-container', '', 'created_time', false)">Trips created</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" id="tab-2" data-toggle="tab" href="#" onclick="loadTripContainer('trip-container', '', '', trips_this_user_liked=true)">Trips liked</a>
+          </li>
+        </ul>
+      </div>
+
+      <div id='trip-container' data-url='/api/{{ object.username }}/trip/'>
+
+      </div>
+      <a href="#" id='loadmore'>Load More Trips</a>
+
+    </div>
+  </div>
+
+</div>
+
+
+  <script type="text/javascript" src="https://code.jquery.com/jquery-2.1.4.js"></script>
+  <script type="text/javascript" src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+{% endblock content %}
+
+{% block script %}
+  <script>
+  console.log({{ object.profile.reverse_lazy }})
+  $(document).ready(function(){
+    loadTripContainer("trip-container", '', '', false);
+  });
+
+  $("#tab-1").tab('show');
+
+  function toggle_following_user_list(){
+    $("#following_user_list").toggle();
+  }
+  function toggle_followed_by_user_list() {
+    $("#followed_by_user_list").toggle();
+  }
+
+  </script>
+{% endblock %}

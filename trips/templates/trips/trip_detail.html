@@ -1,0 +1,974 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
+  <title>Trip Planner</title>
+  <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+  <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+  <link href="https://fonts.googleapis.com/css?family=Lato" rel="stylesheet">
+  <link rel="icon" type="image/png" href="{% static 'home/images/logo-darker.png' %}" />
+  <style media="screen">
+    body {
+      font-family: "Lato", Georgia, serif;
+    }
+
+    h1 {
+      margin-top: 5px;
+    }
+
+    .navbar-inverse {
+      background: #2c3e50;
+      font-size: 120%;
+    }
+
+    .navbar-inverse .navbar-nav>li>a {
+      color: white;
+    }
+
+    .navbar-inverse .navbar-nav>li>a:hover {
+      background: #242424;
+    }
+
+    .navbar-inverse .navbar-brand {
+      color: white;
+    }
+
+    #logo {
+      padding: 0;
+      position: relative;
+      top: 2px;
+    }
+
+    #messagewindow {
+      position: fixed;
+      margin: auto;
+      font-weight: bold;
+      font-size: 1.2em;
+      width: 500px;
+      margin: 10px auto;
+      left: 0;
+      right: 0;
+      display: none;
+      z-index: 10;
+    }
+
+    .thumbnail {
+      position: relative;
+    }
+
+    .looking_for_partner {
+      position: absolute;
+      top: 7px;
+      left: 15px;
+    }
+
+    .trip-title {
+      display:block;
+      width:100%;
+      height:70px;
+      overflow:hidden;
+    }
+
+    .thumbnail_img_div {
+       height: 250px;
+       width: 352px;
+       overflow: hidden;
+    }
+
+    /* Always set the map height explicitly to define the size of the div
+     * element that contains the map. */
+    #map {
+      height: 450px;
+    }
+
+    /* Optional: Makes the sample page fill the window. */
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+    }
+
+    input[type=number]{
+      width: 80px;
+    }
+
+    .input-group-addon {
+      background-color: #fcf7f2;
+    }
+
+    .btn-space {
+      margin-right: 5px;
+    }
+
+    .place-list-container {
+      z-index: 3;
+    }
+
+    .travel-mode-icon {
+      color: slategray;
+      /*cursor:pointer;*/
+      margin-right:10px;
+      font-size: 1.55em;
+    }
+
+    .view_note_icon {
+      position: absolute;
+      right: 5px;
+      top: 14px;
+      color: darkgreen;
+    }
+
+    .collapse_place_tag_icon {
+      position: absolute;
+      right: -29px;
+      top: 13px;
+      cursor: pointer;
+    }
+
+    .travel-time-text, .vertical-line, .travel-dist-text {
+      /*font-size: 1.25em;*/
+      font-weight: bold;
+      color: darkslategray;
+    }
+
+    .time-conflict-warning {
+      color: darkred;
+      font-weight: bold;
+    }
+
+    .infowindow-place-name {
+      margin:5px;
+    }
+
+    .infowindow-sub-div {
+      white-space: pre-wrap;
+    }
+
+    .custom-name-display {
+      position: absolute;
+      border-width: 0;
+      border-left: 1px solid darkslategray;
+      padding-left: 9px;
+      width: 70%;
+      left: 94px;
+    }
+
+    .flip_icon {
+      display: block;
+      -webkit-transform: matrix(1, 0, 0, -1, 0, 0);
+      -moz-transform: matrix(1, 0, 0, -1, 0, 0);
+      -o-transform: matrix(1, 0, 0, -1, 0, 0);
+      transform: matrix(1, 0, 0, -1, 0, 0);
+    }
+
+    .arrival-departure-time-badge {
+      background-color: white;
+      color: black;
+      margin-top: 4px;
+      margin-right: -25px;
+      color: dimgray;
+    }
+
+    /*The div above google map (search bar etc.)*/
+    .col-sm-7 {
+      margin-bottom: 5px;
+    }
+
+    .label {
+      margin-right: 3px;
+    }
+
+    .sequence-number {
+      position: absolute;
+      left: -9px;
+      top: -5px;
+    }
+
+    .sequence-number .label {
+      border-radius: 0.1em;
+    }
+
+    .place-tag-div {
+      font-weight: 700;
+      border: 2px solid silver;
+      font-size: 1.35em;
+    }
+
+    .list-group-item {
+      position: relative;
+      padding-right: 30px;
+      cursor: pointer;
+      height: 50px;
+      font-size: 1.2em;
+    }
+
+    .list-group-item.collapsed-place-tag-div {
+      cursor: default;
+      border: none;
+      height: 16px
+    }
+
+    .list-group-item.collapsed-place-tag-div .indexes-collapsed {
+      position: relative;
+      top: -14px;
+      margin-left: 113px;
+    }
+
+    .list-group-item.collapsed-place-tag-div .indexes-collapsed span {
+      cursor: pointer;
+      opacity: 0.7;
+    }
+
+    .travel_mode_time_dist_text {
+      height: 49px;
+      margin: 0;
+      padding-top: 9px;
+      padding-left: 90px;
+    }
+
+    .unavailable-travel-mode {
+      color: red;
+    }
+
+    .place_tag_date_arrival_span, .place_tag_date_departure_span {
+      position: absolute;
+      left: -34%;
+      font-size: 1.1em;
+      font-weight: 600;
+      color: darkolivegreen;
+      width: 132px;
+      line-height: 100%;
+      border-top: 1px solid gray;
+    }
+
+    .place_tag_date_arrival_span {
+      top: -1px;
+    }
+
+    .place_tag_date_departure_span {
+      top: 29px;
+    }
+
+    .time_arrival_display, .time_departure_display {
+      position: absolute;
+      left: -12%;
+      font-size: 1.15em;
+    }
+
+    .time_arrival_display {
+      top: 2px;
+    }
+
+    .time_departure_display {
+      top: 31px;
+    }
+
+    .time_duration_display {
+      position: absolute;
+      left: 0;
+      font-size: 1.15em;
+      letter-spacing: -1px;
+      width: 94px;
+      color: darkolivegreen;
+    }
+
+    .glyphicon-arrow-down {
+      font-size: 1.3em;
+      margin-left: 35px;
+      margin-right: 10px;
+      position: relative;
+      top: 7px;
+    }
+
+    #navbar-search-box-list-item {
+      display: none;
+    }
+
+    #place_note_detail_div {
+      border: 2px solid gray;
+      border-radius: 3px;
+      padding: 5px;
+      max-width: 25%;
+      max-height: 200px;
+      overflow: auto;
+      position: absolute;
+      background: white;
+      display: none;
+      z-index: 50;
+    }
+
+    #note_text {
+      white-space: pre-wrap;
+    }
+
+    #listOfPlaces {
+      /*width: 404px;*/
+      left: 54px;
+      position: relative;
+    }
+
+    #trip_name {
+      width: 75%;
+      position: relative;
+      left: 20px;
+      margin-top: 8px;
+    }
+  </style>
+</head>
+
+<body>
+
+{% include 'navbar.html' %}
+<div class="alert alert-success text-center" id="messagewindow">
+	Some text goes here.
+</div>
+
+<div id="delete_confirm_window" class="container alert alert-danger text-center" style="display: none;">
+  <h4>Are you sure you want to delete this trip?</h4>
+  <a class="btn btn-danger" href="/trip/{{ trip.id }}/delete/">Confirm</a>
+  <button class="btn btn-default" style="margin-left:15px;">Cancel</button>
+</div>
+
+<div id="place_note_detail_div" class="">
+  <p id="note_text">abd cdioasf ldfjal fasd fdslfL:FJDf ldJFL:DSf.</p>
+</div>
+
+<div class="container" style="width:1400px;">
+
+  <h1>
+    {{ trip.title}}
+    {% if request.user == trip.creator %}
+      <button class="btn btn-danger pull-right" id="delete_trip_button">Delete the trip</button>
+      <!-- <button class="btn btn-default pull-right">Share</button> -->
+      <a class="btn btn-warning pull-right" href="/trip/{{ trip.id }}/update/" style="margin-right:5px;">Edit the trip</a>
+    {% endif %}
+  </h1>
+
+  <div class="panel panel-default">
+    <div class="panel-body">
+      <h4>Created by: <a href="/profiles/{{ trip.creator.username }}">{{ trip.creator.username }}</a> | Group Size: {{ trip.group_size }}</h4>
+      <h4>{{ trip.get_start_date_yyyymmdd }}---{{ trip.get_end_date_yyyymmdd }} | {{ trip.get_total_dist_miles }} miles.</h4>
+      <span class="label label-success"> Likes: {{ trip.get_likes_count }}</span>
+      {% if trip.looking_for_partner %}
+        <span class="label label-danger"> Looking for partners! </span>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="panel panel-default">
+    <div class="panel-body">
+
+      <div class="row">
+        <div class="col-sm-4 col-sm-offset-1 place-list-container">
+            <div id="listOfPlaces" class="list-group">
+            </div>
+        </div>
+        <div class="col-sm-6 col-sm-offset-1">
+          <div id="mapContainer">
+            <div id="map" height="485px" width="100%"></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="panel panel-default">
+    <div class="panel-heading">
+      <!-- <h3 class="panel-title"> OP's review </h3> -->
+    </div>
+    <div class="panel-body">
+      {% if trip.description %}
+      <h4>{{ trip.description }}</h4>
+      {% else %}
+      <h4> No description. </h4>
+      {% endif %}
+    </div>
+  </div>
+
+  {% if request.user == trip.creator %}
+  <!-- <a class="btn btn-default" href="/trip/{{ trip.id }}/update/">Edit</a> -->
+  {% else %}
+  <div class="panel panel-default">
+    <div class="panel-heading">
+      <h3 class="panel-title"> Comments </h3>
+    </div>
+    <div class="panel-body">
+      {% if request.user.is_authenticated %}
+      <button class="btn btn-success" id="like_trip_button" onclick="likeTheTrip({{ trip.id }})" type="button" name="button">
+        {% if liked %}
+          Unlike it
+        {% else %}
+          Like it
+        {% endif %}
+      </button>
+      <!-- <button class="btn btn-default" type="button" name="button">Share</button> -->
+      {% else %}
+      <h4>Like it? <a href="/login/">Login</a> or <a href="/register/">register</a>!</h4>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+
+</div>
+
+<script type="text/javascript" src="https://code.jquery.com/jquery-2.1.4.js"></script>
+<script type="text/javascript" src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+<script type="text/javascript" src="{% static 'trips/js/moment.js' %}"></script>
+
+<script>
+  var geocoder;
+
+  var map;
+  var places = [];
+  var markerIndex;
+  var markerLat;
+  var markerLng;
+  var messagewindow;
+  var tripDurationDays = 0;
+  var totalHoursOnTravel = 0;
+  var totalTravelTimeInSec = 0;
+  var totalDaysOnTravel = 0;
+  var leftHoursOnTravel = 0;
+  var totalTravelDistInMeters = 0;
+  var travelModeIconClass = {
+    "DRIVING": "fa fa-car",
+    "WALKING": "fa fa-blind",
+    "BICYCLING": "fa fa-bicycle",
+    "TRANSIT": "fa fa-bus"
+  }
+  // var directionsService;
+  // var directionsDisplay;
+
+  var iconURLPrefix = "http://chart.apis.google.com/chart?chst=d_map_pin_letter&chld=";
+  var markerBackgroundColor = "337AB7"  // Used in the api URL for "icon" argument, default color
+  var markerBackgroundColorDict = {
+                                    "label label-primary": "337AB7",
+                                    "label label-success": "5CB85C",
+                                    "label label-danger" : "D9534F",
+                                    "label label-warning": "F0AD4E",
+                                    "label label-default": "C0C0C0",
+                                    "label label-info"   : "5BC0DE",
+                                  }
+  var markerNumberColor = "FFFFFF"      // Used in the api URL for "icon" argument
+  // var indexOfMarkerBeingDragged;
+
+  var infowindowContent;
+  var infowindowPrefix = '<div class="infowindow-content"><h4 class="infowindow-place-name">'
+  var infowindowMidContent = '</h4><hr><div class="infowindow-sub-div">'
+  var infowindowPostfix = '</div></div>';
+
+  function Place(marker) {
+          this.marker                     = marker;
+          this.infowindow                 = marker.infowindow;
+          this.lat                        = marker.getPosition().lat();
+          this.lng                        = marker.getPosition().lng();
+          this.latLng                     = {lat: marker.getPosition().lat(), lng: marker.getPosition().lng()};
+          this.name                       = "Unknown.";
+          this.customName                 = "";
+          this.timeZone                   = {
+                                              timeZoneId:"America/Los_Angeles",
+                                              timeZoneName:"Pacific Daylight Time",
+                                              dstOffset: 3600,
+                                              rawOffset: -28800
+                                            };
+          this.prevPlace                  = null;
+          this.nextPlace                  = null;
+          this.travelInfoToHere           = {
+                                              travelMode: "DRIVING",
+                                              travelTime: {
+                                                            text: "",
+                                                            seconds:0
+                                                          },
+                                              travelDist: {
+                                                            text: "",
+                                                            meters:0
+                                                          },
+                                              directionsDisplay: null,
+                                              encodedPolyline: "",
+                                              unavailableModes: new Set()
+                                            };
+          this.note                       = "";
+          this.timeArrival                = null;
+          this.timeDeparture              = null;
+          this.isPinned                   = false;
+          this.isTagHidden                = false;
+          this.placeTagLabelColor         = "label label-primary";
+          this.weatherArrival             = "";
+          this.weatherDeparture           = "";
+        }
+
+  function AdjustCameraControl(controlDiv, map) {
+    // Set CSS for the control border.
+    var controlUI = document.createElement('div');
+    controlUI.style.backgroundColor = '#f9f6ed';
+    controlUI.style.border = '2px solid #f9f6ed';
+    controlUI.style.borderRadius = '3px';
+    controlUI.style.boxShadow = '0 2px 6px rgba(0,0,0,.3)';
+    controlUI.style.cursor = 'pointer';
+    controlUI.style.marginBottom = '22px';
+    controlUI.style.textAlign = 'center';
+    controlUI.title = 'Click to generate the route';
+    controlDiv.appendChild(controlUI);
+
+    // Set CSS for the control interior.
+    var controlText = document.createElement('div');
+    controlText.style.color = 'rgb(64,127,125)';
+    controlText.style.fontFamily = 'Roboto,Arial,sans-serif';
+    controlText.style.fontSize = '16px';
+    controlText.style.lineHeight = '38px';
+    controlText.style.paddingLeft = '5px';
+    controlText.style.paddingRight = '5px';
+    controlText.innerHTML = 'Adjust Camera';
+    controlUI.appendChild(controlText);
+
+    // Setup the click event listeners.
+    controlUI.addEventListener('click', adjustMapCamera);
+  }
+
+  function initMap() {
+    var directionsService = new google.maps.DirectionsService;
+    var california = {lat: 37.4419, lng: -122.1419};
+
+    map = new google.maps.Map(document.getElementById('map'), {
+      center: california,
+      zoom: 7
+    });
+
+    // Create the DIV to hold the control and call the CenterControl()
+    // constructor passing in this DIV.
+    var adjustCameraDiv = document.createElement('div');
+    var adjustCamera = new AdjustCameraControl(adjustCameraDiv, map);
+    adjustCameraDiv.index = 1;
+    map.controls[google.maps.ControlPosition.TOP_RIGHT].push(adjustCameraDiv)
+
+    geocoder = new google.maps.Geocoder;
+
+    loadOldData();
+  }
+
+  function adjustMapCamera(){
+    var bounds = new google.maps.LatLngBounds();
+    if (places.length == 0) {
+      var southWestLatLng = {lat: 35.4632463315504, lng: -110.298828125}
+      var northEastLatLng = {lat: 43.57946149373232, lng: -85.576171875}
+      bounds.extend(southWestLatLng);
+      bounds.extend(northEastLatLng);
+    } else {
+      for (var place of places) {
+       bounds.extend(place.marker.getPosition());
+      }
+    }
+    map.fitBounds(bounds);
+  }
+
+  function attachPlaceTag(place, index) {
+    // Add one place tag to the right div.
+    var container = $("#listOfPlaces");
+    // var iconContainer = $("#listOfIcons");
+    var travelMode = place.travelInfoToHere.travelMode;
+
+    if (index > 0) {
+      container.append(
+                        '<span class="travel_mode_span" id="travel_mode_span_' + index +
+                        '" data-index="' + index + '">' +
+                          '<p class="travel_mode_time_dist_text">' +
+                            '<i class="glyphicon glyphicon-arrow-down" aria-hidden="true" style="font-size:1.7em;"></i>' +
+                            '<span class="travel-info-text">' +
+                              '<i class="'+travelModeIconClass[place.travelInfoToHere.travelMode]+' fa-lg travel-mode-icon"></i> ' +
+                              '<span class="travel-time-text">Calculating</span>' +
+                              '<span class="vertical-line"> | </span>' +
+                              '<span class="travel-dist-text">Calculating</span>' +
+                            '</span>' +
+                          '</p>' +
+                        '</span>'
+                      );
+
+      if (place.travelInfoToHere.unavailableModes.has(place.travelInfoToHere.travelMode)) {
+        $("#travel_mode_span_"+index).find(".travel-mode-icon").addClass("unavailable-travel-mode").attr("title", "Cannot reach next place with this travel mode.")
+      }
+    }
+
+    var address = place.showSuggestedName? place.name : place.customName;
+        // addressFormatted = place.customName;
+
+    address = address || "Unavailable Address";
+
+    container.append('<div class="list-group-item place-tag-div" ' +
+                      'id="place_tag_' + index + '" ' +
+                      'data-index=' + index + '>' +
+                        '<span class="place_tag_date_arrival_span"></span>' +
+                        '<span class="place_tag_date_departure_span"></span>' +
+                        '<span class="badge arrival-departure-time-badge">Calculating</span>' +
+                        '<span class="sequence-number">' +
+                          '<span class="'+place.placeTagLabelColor+'">' + (index+1) + '</span>' +
+                        '</span>' +
+                        '<i class="fa fa-sticky-note fa-lg view_note_icon" title="View note of this place."></i>' +
+                        '<i class="fa fa-compress fa-lg collapse_place_tag_icon" title="Hide the tag and marker of this place."></i>' +
+                        '<span type="text" class="custom-name-display">'+address+'</span>' +
+                      '</div>'
+                    );
+    if (place.note == "") {
+      $("#place_tag_"+index).find(".view_note_icon").remove();
+    }
+  }
+
+  function updateAllPlaceTags(){
+    $("#listOfPlaces").html("");
+    var place;
+
+    for (var i=0; i < places.length; i++){
+      place = places[i];
+      attachPlaceTag(place, i);
+      updateSinglePlaceTag(i);
+    }
+    updateAllCollapsedPlaceTags();
+  }
+
+  function updateSinglePlaceTag(i) {
+    var place = places[i];
+    var timeDiff, daysDiff, hoursDiff, minutesDiff, timeDiffString;
+
+    $("#place_tag_"+i).find("input").val(place.customName||place.name)
+
+    if (i > 0){
+
+      if (place.travelInfoToHere.unavailableModes.has(place.travelInfoToHere.travelMode)){
+        $("#travel_mode_span_"+i).find(".travel-time-text, .vertical-line, .travel-dist-text").hide();
+      } else {
+        if (place.travelInfoToHere.travelTime.seconds > 0){
+          $("#travel_mode_span_"+i).find(".travel-time-text").text(place.travelInfoToHere.travelTime.text.replace("hours", "hrs").replace("hour", "hr"));
+        } else {
+          $("#travel_mode_span_"+i).find(".travel-time-text").text("Unavailable");
+        }
+        if (place.travelInfoToHere.travelDist.meters > 0){
+          $("#travel_mode_span_"+i).find(".travel-dist-text").text(place.travelInfoToHere.travelDist.text);
+        } else {
+          $("#travel_mode_span_"+i).find(".travel-dist-text").text("Unavailable");
+        }
+      }
+
+    }
+
+    place.marker.setIcon(iconURLPrefix + (i+1).toString() + "|" + markerBackgroundColorDict[place.placeTagLabelColor] + "|" + markerNumberColor)
+
+    var infowindowContent = infowindowPrefix + place.customName +
+                            infowindowMidContent + place.note +
+                            infowindowPostfix
+    place.infowindow.setContent(infowindowContent);
+
+    timeDiff = moment(place.timeDeparture).diff(moment(place.timeArrival), 'minutes');
+    daysDiff = Math.floor(timeDiff / 24 / 60);
+    hoursDiff = Math.floor(timeDiff/60) % 24;
+    minutesDiff = Math.floor(timeDiff % 60);
+
+
+    timeDiffString = "";
+
+    if (timeDiff < 0){
+      timeDiffString = "N / A";
+    } else if (timeDiff === 0) {
+      timeDiffString = "pass by";
+    } else {
+      if (daysDiff > 0) {
+        timeDiffString = daysDiff+((daysDiff == 1)?" d  ":" d  ") + ((hoursDiff == 0)?"":(hoursDiff+((hoursDiff == 1)?" h":" h")));
+        } else if (hoursDiff > 0 || minutesDiff > 0) {
+        timeDiffString = ((hoursDiff == 0)?"":(hoursDiff+((hoursDiff == 1)?" h  ":" h  "))) +
+                        ((minutesDiff == 0)?"":(minutesDiff+((minutesDiff == 1)?" m":" m")))
+      }
+    }
+
+    $("#place_tag_"+i).find(".arrival-departure-time-badge").html(
+                                "<span class='time_arrival_display'>"+place.timeArrival.format("HH:mm")+"</span>"+
+                                "<span class='time_departure_display'>"+place.timeDeparture.format("HH:mm")+"</span>"+
+                                "<span class='time_duration_display text-center' title='How long to stay here.'>" + timeDiffString + "</span>"
+                              );
+    // if (place.isPinned) {
+    //   $("#place_tag_"+i).find(".arrival-departure-time-badge").css("color", "darkblue")
+    //                               .attr("title", "The arrival and departure time are fixed and can only be changed manually.");
+    //   $("#place_tag_"+i).find(".time-pin-icon").css("color","darkblue");
+    // }
+    if (place.note != "") {
+      $("#place_tag_"+i).find(".view_note_icon").removeClass("fa-sticky-note-o").addClass("fa-sticky-note")
+                                                  .attr("title", "Edit note of this place.");
+    }
+
+    updatePlaceTagDateSpan(i);
+    checkTimeConflict(i);
+  }
+
+  function checkTimeConflict(index){
+    var place = places[index]
+
+    if (index > 0) {
+      if (moment(places[index-1].timeDeparture).add(place.travelInfoToHere.travelTime.seconds, 's')
+                                              .isAfter(moment(place.timeArrival).add(5,'m'))){
+        $("#travel_mode_span_"+index).find(".travel-time-text").addClass("time-conflict-warning").attr("title","Cannot reach next place on time.");
+      } else {
+        $("#travel_mode_span_"+index).find(".travel-time-text").removeClass("time-conflict-warning").attr("title","");
+      }
+    }
+
+      if(place.timeArrival.isAfter(place.timeDeparture)) {
+        $("#place_tag_"+index).find(".arrival-departure-time-badge").css("color","darkred");
+      } else {
+        $("#place_tag_"+index).find(".arrival-departure-time-badge").css("color","dimgray");
+      }
+
+  }
+
+  function updatePlaceTagDateSpan(i){
+    if (!places[i].isTagHidden) {
+        var j = i-1;
+        while (j >= 0 && places[j].isTagHidden) {
+          j -= 1;
+        }
+        if (j < 0 || places[i].timeArrival.format("MMM D") != places[j].timeDeparture.format("MMM D")) {
+          $("#place_tag_"+i).find(".place_tag_date_arrival_span").text(places[i].timeArrival.format("MMM D"))
+                                                                  .css("border-top", "2px solid gray");
+        }  else {
+          $("#place_tag_"+i).find(".place_tag_date_arrival_span").text("").css("border-top","none");
+        }
+
+        if (places[i].timeDeparture.format("MMM D") != places[i].timeArrival.format("MMM D")) {
+          $("#place_tag_"+i).find(".place_tag_date_departure_span").text(places[i].timeDeparture.format("MMM D"))
+                                                                  .css("border-top", "2px solid gray");
+        } else {
+          $("#place_tag_"+i).find(".place_tag_date_departure_span").text("").css("border-top","none");
+        }
+      }
+    }
+
+  function updateAllCollapsedPlaceTags() {
+    $(".collapsed-place-tag-div").each(function(){$(this).remove()});
+
+    var index = 0;
+
+    while (index < places.length) {
+      if (!places[index].isTagHidden) {
+        places[index].marker.setOpacity(1);
+        $("#place_tag_"+index).show();
+        $("#travel_mode_span_"+index).show();
+        index += 1;
+        continue;
+      }
+      $("#place_tag_"+index).before(
+        '<div class="list-group-item collapsed-place-tag-div" id="collapsed-place-tag-div-'+index+'">' +
+          // '<i class="glyphicon glyphicon-arrow-down" aria-hidden="true" style="font-size:1.7em;"></i>' +
+          '<div class="indexes-collapsed">' +
+          '</div>' +
+        '</div>'
+      );
+      var collapsedTagDiv = $("#collapsed-place-tag-div-"+index+" .indexes-collapsed");
+
+      var i = index;
+      while (i < places.length && places[i].isTagHidden) {
+        places[i].marker.setOpacity(0.1);
+        $("#place_tag_"+i).hide()
+        $("#travel_mode_span_"+i).show();
+        if (i > index) {
+          $("#travel_mode_span_"+i).hide();
+        }
+        collapsedTagDiv.append(
+          '<span class="'+places[i].placeTagLabelColor+'">'+(i+1)+'</span>'
+        )
+        i += 1;
+      }
+      index = i;
+    }
+  }
+
+  function loadOldData() {
+    places = [];
+    {% for place in places %}
+      var marker = new google.maps.Marker({
+        position: {lat: {{ place.lat }}, lng: {{ place.lng }}},
+        map: map,
+        icon: iconURLPrefix + {{ forloop.counter }} + "|" + markerBackgroundColorDict["{{ place.tag_color }}"] + "|" + markerNumberColor
+      });
+      marker.infowindow = new google.maps.InfoWindow({
+          maxWidth: 270
+      });
+      marker.infowindow.setContent( infowindowPrefix + "{{ place.custom_name }}" +
+                                    infowindowMidContent + "{{ place.note }}".replace(/\\n/g,"\n") +
+                                    infowindowPostfix)
+      google.maps.event.addListener(marker, 'click', function() {
+        this.infowindow.open(map, this);
+      });
+
+      var new_place = new Place(marker);
+      new_place.name                                      = "{{ place.name }}";
+      new_place.customName                                = "{{ place.custom_name }}";
+      new_place.showSuggestedName                         = "{{ place.show_suggested_name }}" === "True"? true : false;
+      new_place.isTagHidden                               = "{{ place.is_tag_hidden }}" === "True"? true : false;
+      if (new_place.customName.length == 0) {
+        new_place.customName                              = "{{ place.name }}";
+      }
+      new_place.lat                                       = marker.getPosition().lat();
+      new_place.lng                                       = marker.getPosition().lng();
+      new_place.latLng                                    = {lat: marker.getPosition().lat(), lng: marker.getPosition().lng()};
+      new_place.note                                      = "{{ place.note }}".replace(/\n/g, "\n");
+      new_place.timeArrival                               = moment("{{place.get_time_arrival}}");
+      new_place.timeDeparture                             = moment("{{place.get_time_departure}}");
+      new_place.infowindow                                = marker.infowindow;
+      new_place.placeTagLabelColor                        = "{{place.tag_color}}";
+      {% if not forloop.first %}
+        new_place.note                                    = "{{ place.note }}";
+        new_place.prevPlace                               = places[places.length-1];
+        places[places.length-1].nextPlace                 = new_place;
+        new_place.travelInfoToHere.travelMode             = "{{ place.travel_mode_to_here }}".toUpperCase();
+        new_place.travelInfoToHere.travelTime.seconds     = {{ place.travel_time_to_here_sec }};
+        new_place.travelInfoToHere.travelDist.meters      = {{ place.travel_dist_to_here_meter }};
+        new_place.travelInfoToHere.travelTime.text        = "{{ place.travel_time_to_here_text }}";
+        new_place.travelInfoToHere.travelDist.text        = "{{ place.travel_dist_to_here_text }}";
+        new_place.travelInfoToHere.encodedPolyline        = "{{ place.encoded_polyline }}";
+
+        var strokeColor;
+        if (new_place.travelInfoToHere.travelMode == "BICYCLING"){
+          strokeColor = 'orange';
+        } else if (new_place.travelInfoToHere.travelMode == "WALKING") {
+          strokeColor = 'red';
+        } else if (new_place.travelInfoToHere.travelMode == "TRANSIT") {
+          strokeColor = 'green';
+        } else{
+          strokeColor = '#0088FF';
+        }
+        var newPolyLine = new google.maps.Polyline ({
+          path: google.maps.geometry.encoding.decodePath(new_place.travelInfoToHere.encodedPolyline.replace(/\\\\/g, "\\")),
+          strokeColor: strokeColor,
+          strokeWeight: 6,
+          strokeOpacity: 0.6
+        })
+        newPolyLine.setMap(map)
+
+        new_place.travelInfoToHere.polyline = newPolyLine;
+      {% endif %}
+
+      {% for mode in place.get_unavailable_modes_list %}
+        new_place.travelInfoToHere.unavailableModes.add("{{ mode }}")
+      {% endfor %}
+
+      places.push(new_place)
+    {% endfor %}
+
+    adjustMapCamera();
+    updateAllPlaceTags();
+  }
+
+  function likeTheTrip(tripId){
+    var likedUrl = '/api/trip/' + tripId + '/like/'
+    $.ajax({
+      method: "GET",
+      url: likedUrl,
+      success: function(data) {
+        if (data.liked){
+          $("#like_trip_button").text("Liked");
+        } else {
+          $("#like_trip_button").text("Unliked");
+        }
+      },
+      error: function(data) {
+        console.log(data)
+      }
+    })
+  }
+
+  // Click listener.
+  $(document).on("click", "body", function(e){
+    $("#place_note_detail_div").hide();
+    $("note_text").text("");
+  })
+
+  $(document.body).on("click", ".list-group-item", function(e) {
+    if (!$(this).hasClass("collapsed-place-tag-div")){
+      var index = parseInt($(this).attr("data-index"));
+      places[index].infowindow.open(map, places[index].marker);
+    }
+  })
+
+  $(document.body).on("click", ".collapse_place_tag_icon", function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    var index = parseInt($(this).parent().attr("data-index"));
+    $("#place_tag_"+index).slideUp('fast', function() {
+      if (index == 0 || !places[index-1].isTagHidden) {
+        places[index].isTagHidden = true;
+        updateAllPlaceTags();
+      } else {
+        $("#travel_mode_span_"+index).slideUp('fast', function() {
+          places[index].isTagHidden = true;
+          updateAllPlaceTags();
+        })
+      }
+    })
+  })
+
+  $(document.body).on("click", ".list-group-item.collapsed-place-tag-div .indexes-collapsed span", function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    var index = parseInt($(this).text())-1;
+    $("#place_tag_"+index).slideDown('fast', function() {
+      places[index].isTagHidden = false;
+      updateAllPlaceTags();
+    })
+  })
+
+  $(document.body).on("click", ".view_note_icon", function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    noteIndex = parseInt($(this).parent().attr("data-index"));
+    var noteDiv = $("#place_note_detail_div");
+    if (noteDiv.is(":visible")) {
+      noteDiv.hide();
+      noteDiv.find("#note_text").text("");
+    } else {
+      var x = e.clientX, y = e.clientY;
+      noteDiv.find("#note_text").text(places[noteIndex].note);
+      // getBoundingClientRect() gives the coordinates of the element relative to the viewport.
+      var rect = document.getElementById("place_note_detail_div").getBoundingClientRect();
+
+      noteDiv.attr("data-index", noteIndex).css("position", "absolute")
+                                        .css("top", (y+window.scrollY+20)+'px')
+                                        .css("left",(x+window.scrollX+20)+'px');
+      noteDiv.show();
+    }
+  })
+
+  $(document.body).on("click", "#delete_trip_button", function(e){
+    $("#delete_confirm_window").fadeIn();
+  });
+
+  $(document.body).on("click", "#delete_confirm_window button", function(e){
+    // "Cancel" button pressed.
+    $("#delete_confirm_window").fadeOut();
+  });
+
+  // Adjust position of the google map while scrolling.
+  $(function(){
+    var mapContainer = $('#mapContainer');
+    var mapOffTop = mapContainer.offset().top;
+    var win = $(window);
+    win.scroll(function(e){
+        var scrollTop = win.scrollTop();
+        mapContainer.css({position:'relative',
+          top:Math.min(
+            Math.max(0,Math.min(scrollTop-mapOffTop)),
+            Math.max(0,$(".place-list-container").height()-$("#mapContainer").height())
+            ) + 10
+          }
+        );
+    });
+  });
+
+</script>
+
+{% block script %}{% endblock %}
+<script async defer
+src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAoX1pdP9-vueaY2JVmIxViYdUdY1DbHJM&callback=initMap&libraries=geometry">
+</script>
+
+</body>
+</html>

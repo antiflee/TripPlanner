@@ -1,0 +1,42 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Trip Planner</title>
+    <!-- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.5.2/animate.min.css"> -->
+  	<link rel="stylesheet" type="text/css" href="{% static 'home/css/home.css' %}">
+		<link href='https://fonts.googleapis.com/css?family=Raleway:200,400,800' rel='stylesheet' type='text/css'>
+  	<link rel="icon" type="image/png" href="{% static 'home/images/logo.png' %}" />
+  </head>
+  <body>
+    <div class="container demo">
+      <div class="content">
+        <div id="large-header" class="large-header">
+            <video id="oracleVideo" playsinline autoplay muted loop poster="{% static 'home/images/background_poster.jpg' %}">
+              <source src="{% static 'home/video/landing_page_video.mp4' %}" type="video/mp4">
+            </video>
+            <h1 class="main-title noselect">
+              <span class="thin">TRIP</span>
+              <span class="thick"> PLANNER</span>
+              <p class="subtitle" onclick="location.href='/trip/';"> Start Your Adventure</p>
+            </h1>
+
+
+        </div>
+      </div>
+    </div>
+  </body>
+  <!-- <script type="text/javascript" src="https://s3-us-west-2.amazonaws.com/s.cdpn.io/499416/TweenLite.min.js"></script>
+  <script type="text/javascript" src="https://s3-us-west-2.amazonaws.com/s.cdpn.io/499416/EasePack.min.js"></script> -->
+  <script type="text/javascript" src="https://code.jquery.com/jquery-2.1.4.js"></script>
+  <script src="{% static 'home/js/home.js' %}"></script>
+  <!-- <script type="text/javascript">
+    $("document.body").on("click", ".subtitle", function(e) {
+      e.preventDefault();
+      // window.location = "/trip/";
+
+    })
+  </script> -->
+</html>

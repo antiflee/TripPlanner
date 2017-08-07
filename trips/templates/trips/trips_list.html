@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% load static %}
+
+
+{% block meta %}
+<meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
+<meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
+{% endblock %}
+
+{% block styles %}
+<style media="screen">
+  .nav-link {
+    font-size: 1.2em;
+  }
+
+  #toggle_looking_for_partner_button {
+    margin-top: 10px;
+    margin-left: 50px;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="row">
+    <div class="col-sm-7">
+      <ul class="nav nav-tabs" role="tablist">
+        <li class="nav-item">
+          <a class="nav-link active" id="tab-1" data-toggle="tab" href="#" onclick="loadTripContainer('trip-container', '', 'created_time')">New Trips</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" id="tab-2" data-toggle="tab" href="#" onclick="loadTripContainer('trip-container', '', 'likes')">Popular</a>
+        </li>
+        <!-- <li class="nav-item">
+          <a class="nav-link" id="tab-3" data-toggle="tab" href="#">Recommended</a>
+        </li> -->
+        <!-- <li class="nav-item">
+          <a class="nav-link" href="#">My friends'</a>
+        </li> -->
+      </ul>
+    </div>
+    <div class="col-sm-3 col-sm-offset-2">
+      <button class="btn btn-default" id="toggle_looking_for_partner_button" onclick="toggle_looking_for_partner()">Looking for partner</button>
+    </div>
+  </div>
+
+  <br>
+  <div class="container">
+    <div class="row" id="trip-container" data-url='/api/trip/'>
+
+    </div>
+    <div class="text-center">
+      <a href="#" id='loadmore'><h4>Load More Trips</h4></a>
+    </div>
+  </div>
+
+
+</div>
+<script type="text/javascript" src="https://code.jquery.com/jquery-2.1.4.js"></script>
+<script type="text/javascript" src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+<script>
+  $(document).ready(function(){
+    loadTripContainer("trip-container");
+  });
+  $("#tab-1").tab('show');
+
+  function toggle_looking_for_partner() {
+    looking_for_partner = !looking_for_partner;
+    loadTripContainer("trip-container", "", sort_by);
+    $("#toggle_looking_for_partner_button").toggleClass("btn-primary")
+  }
+</script>
+
+{% endblock content %}

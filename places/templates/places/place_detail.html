@@ -1,0 +1,432 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
+	<title>Trip Planner</title>
+	<link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+	<link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+	<link href="https://fonts.googleapis.com/css?family=Lato" rel="stylesheet">
+	<link rel="icon" type="image/png" href="{% static 'home/images/logo-darker.png' %}" />
+  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+<style media="screen">
+  /* Always set the map height explicitly to define the size of the div
+   * element that contains the map. */
+  #map {
+    height: 450px;
+    border: 1px solid silver;
+  }
+
+  /* Optional: Makes the sample page fill the window. */
+  html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+  }
+
+  body {
+    font-family: "Lato", Georgia, serif;
+  }
+
+  h1 {
+    margin-top: 5px;
+  }
+
+  .navbar-inverse {
+    background: #2c3e50;
+    font-size: 120%;
+  }
+
+  .navbar-inverse .navbar-nav>li>a {
+    color: white;
+  }
+
+  .navbar-inverse .navbar-nav>li>a:hover {
+    background: #242424;
+  }
+
+  .navbar-inverse .navbar-brand {
+    color: white;
+  }
+
+  .nav.nav-tabs .nav-item a {
+    border-radius: 1px;
+    font-size: 1.2em;
+  }
+
+  .show-trip-route {
+    float: right;
+    margin-left: 5px;
+    cursor: pointer;
+  }
+
+  /*a:hover {
+    text-decoration: none;
+  }*/
+
+  .like-count-display {
+    float: right;
+
+  }
+
+  #navbar-search-box-list-item {
+    display: none;
+  }
+
+  #sort_option_form {
+    position: absolute;
+    top: 5px;
+    right: 20px;
+  }
+
+  #logo {
+    padding: 0;
+    position: relative;
+    top: 2px;
+  }
+
+  #messagewindow {
+    position: fixed;
+    margin: auto;
+    width: 500px;
+    margin: 10px auto;
+    left: 0;
+    right: 0;
+    display: none;
+    z-index: 3;
+  }
+
+  #search-clear-button {
+    position: absolute;
+    right: 5px;
+    top: 0;
+    bottom: 0;
+    height: 14px;
+    margin: auto;
+    font-size: 14px;
+    cursor: pointer;
+    color: #ccc;
+    display: none;
+  }
+
+  #prev-page-button, #next-page-button {
+    cursor: pointer;
+    color: brown;
+  }
+
+  #prev-page-button {
+    margin: 0 15px 0 192px;
+  }
+
+  #freq_months_distribution_histogram {
+    position: relative;
+    left: -6px;
+    top: 20px;
+  }
+
+  /*.thumbnail {
+    position: relative;
+  }
+
+  .thumbnail_img_div {
+     height: 250px;
+     width: 352px;
+     overflow: hidden;
+  }*/
+</style>
+</head>
+
+{% include 'navbar.html' %}
+<div class="container">
+  <h1 style="color:forestgreen;">{{ place.name }}</h1>
+  <hr>
+
+  <div class="row">
+    <div class="col-sm-7">
+      <div id="map" height="460px" width="100%"></div>
+    </div>
+    <div class="col-sm-5">
+      <h3 style="margin-top:0;">Trips that pass this place</h3>
+      <form id="sort_option_form" class="form-inline">
+        <label class="mr-sm-2" for="sort_option">Sort by &nbsp</label>
+        <select class="custom-select mb-2 mr-sm-2 mb-sm-0" id="sort_option">
+          <option value="likes" selected>likes</option>
+          <option value="created_time">recent</option>
+        </select>
+      </form>
+
+      <ul id="trip-container" class="list-group">
+      </ul>
+
+      <i id="prev-page-button" class="fa fa-arrow-circle-o-left fa-2x"></i>
+      <i id="next-page-button" class="fa fa-arrow-circle-o-right fa-2x"></i>
+    </div>
+  </div>
+  <hr>
+  <div class="row">
+    <div class="col-sm-7">
+      <div id="freq_months_distribution_plot_div">
+      </div>
+    </div>
+
+    <div class="col-sm-5">
+      <h4> People also visit: </h4>
+      <br>
+      <div id="similar_place_div" class="">
+        <ul id="similar-places-container" class="list-group">
+        </ul>
+      </div>
+    </div>
+  </div>
+  <hr>
+  <!-- <div class="row">
+    <div class="panel panel-default">
+      <div class="panel-heading">
+        <h3 class="panel-title"> Lina's review in the trip <span class="label label-success">Rating: 4.5</span></h3>
+      </div>
+      <div class="panel-body">
+        Great place! Hahahahaha.
+      </div>
+    </div>
+  </div>
+
+  <div class="">
+
+  </div> -->
+</div>
+
+<script type="text/javascript" src="https://code.jquery.com/jquery-2.1.4.js"></script>
+<script type="text/javascript" src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+<script type="text/javascript">
+  var map;
+  function initMap() {
+    map = new google.maps.Map(document.getElementById('map'), {
+      center: {lat: {{ place.lat }}, lng: {{ place.lng }}},
+      zoom: 7
+    });
+
+    var marker = new google.maps.Marker({
+      position: {lat: {{ place.lat }}, lng: {{ place.lng }}},
+      map: map,
+      // icon: iconURLPrefix + (places.length + 1) + "|" + markerBackgroundColor + "|" + markerNumberColor
+    });
+  }
+
+  $(document).ready(function(){
+    loadTripContainer("trip-container", "likes");
+  })
+
+  var tripList = [];
+  var sort_by;
+  var looking_for_partner = false;
+  var place_id = {{ place.id }};
+
+  function loadTripContainer(tripContainerID, sort_by){
+    // var query = getParameterByName('q') || $("#navbar-search-box-list-item input[type='text']").val();
+    var query = ""
+    var sort = "";
+    if (sort_by){
+      sort = sort_by;
+    }
+    tripList = [];
+    var nextTripUrl;
+    var prevTripUrl;
+    var initialURL = "/api/trip/";
+    var tripContainer;
+    if (tripContainerID) {
+      tripContainer = $("#" + tripContainerID)
+    } else {
+      tripContainer = $("#trip-container")
+    }
+
+    tripContainer.html("")
+    var initialURL = "/api/trip/";
+
+    function parseTrip() {
+      if(tripList == 0){
+        tripContainer.html("<h4>No trips found</h4>");
+      } else {
+        tripContainer.html("");
+        hideRoute();
+        $.each(tripList, function(key, value){
+          var tripKey = key;
+          attachTrip(value, tripKey);
+        })
+      }
+    }
+
+    function attachTrip(tripValue, tripKey) {
+      var tripCreator = tripValue.creator;
+      var tripTitle = tripValue.title;
+      var likesCount = tripValue.likes;
+      var looking_for_partner = tripValue.looking_for_partner;
+
+      var tripFormattedHtml = "<li class='list-group-item'>" +
+                                "<a href='/trip/" + tripValue.id + "/'>" + tripValue.title + "</a>" +
+                                "<span class='label label-info show-trip-route' data-key="+tripKey+">View Route</span>" +
+                                "<i class='glyphicon glyphicon-thumbs-up' style='margin-left:3px;float:right;'>(" + tripValue.likes + ")</i>" +
+                              "</li>"
+
+      $("#trip-container").append(tripFormattedHtml);
+    }
+
+    function fetchTrips(url){
+      tripList = [];
+      fetchUrl = url || initialURL
+      $.ajax({
+        url: fetchUrl,
+        data: {
+          "q": query,
+          "sort": sort,
+          "place_id": place_id,
+          "looking_for_partner": looking_for_partner,
+        },
+        method: "GET",
+        success: function(data) {
+          tripList = data.results;
+          if (data.next){
+            nextTripUrl = data.next;
+            $("#next-page-button").css("opacity", 1);
+          } else {
+            $("#next-page-button").css("opacity", 0.3);
+          }
+          if (data.previous) {
+            prevTripUrl = data.previous;
+            $("#prev-page-button").css("opacity", 1);
+          } else {
+            $("#prev-page-button").css("opacity", 0.3);
+          }
+          parseTrip()
+        },
+        error: function(data) {
+          console.log("error")
+          console.log(data)
+        }
+      })
+    }
+
+    $("#next-page-button").bind("click", function(event){
+      event.preventDefault();
+      if (nextTripUrl) {
+        fetchTrips(nextTripUrl);
+      }
+    });
+
+    $("#prev-page-button").bind("click", function(event){
+      event.preventDefault();
+      if (prevTripUrl) {
+        fetchTrips(prevTripUrl);
+      }
+    });
+
+    fetchTrips();
+  }
+
+  var activeRouteIndex = -1;
+  var placeList;
+  var polylineList = [];
+
+  $(document.body).on("click", ".show-trip-route", function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (activeRouteIndex >= 0) {
+      if (activeRouteIndex == $(this).attr("data-key")) {
+        hideRoute();
+        return;
+      }
+      hideRoute();
+    }
+    activeRouteIndex = $(this).attr("data-key");
+
+    placeList = tripList[activeRouteIndex].places_visited;
+    for (var i=1; i<placeList.length; i++) {
+      var place = placeList[i]
+      if (place.encoded_polyline != undefined && place.encoded_polyline.length > 0) {
+        var newPolyLine = new google.maps.Polyline ({
+          path: google.maps.geometry.encoding.decodePath(place.encoded_polyline.replace(/\\\\\\\\/g, "\\")),
+          strokeColor: "#0088FF",
+          strokeWeight: 6,
+          strokeOpacity: 0.6
+        })
+        newPolyLine.setMap(map);
+        polylineList.push(newPolyLine)
+      }
+    }
+  })
+
+  function hideRoute() {
+    activeRouteIndex = -1;
+    for (var polyline of polylineList) {
+      polyline.setMap(null);
+    }
+    polylineList = [];
+  }
+
+  $(document.body).on("change", "#sort_option_form", function(e) {
+    loadTripContainer("trip-container", $("#sort_option_form").val())
+  })
+
+  // Plot visiting frequencies over months.
+  var freq_months_distribution = [];
+  function loadFreqMonthDistribution() {
+    freq_months_distribution = {{ place.get_month_distribution }};
+    var data = [
+      {
+        x: ["Jan","Feb","Mar","Apr","May","June","July","Aug","Sep","Oct","Nov","Dec"],
+        y: freq_months_distribution,
+        type: "scatter"
+      }
+    ];
+    var layout = {
+      title: 'Visiting frequencies over months',
+      xaxis: {
+        title: 'Month',
+        titlefont: {
+          size: 18,
+          color: '#7f7f7f'
+        }
+      },
+      yaxis: {
+        title: 'Visted times',
+        titlefont: {
+          size: 18,
+          color: '#7f7f7f'
+        }
+      }
+    };
+    Plotly.newPlot('freq_months_distribution_plot_div', data, layout);
+  }
+
+  loadFreqMonthDistribution();
+
+  // Similar places.
+  var similarPlaces = [];
+  {% for similar_place in place.get_similar_places %}
+    similarPlaces.push(["{{ similar_place.name }}", "{{ similar_place.get_absolute_url }}"])
+  {% endfor %}
+
+  function loadSimilarPlaces() {
+    var placesContainer = $("#similar-places-container");
+
+    for (var place of similarPlaces) {
+      placesContainer.append(
+                              "<li class='list-group-item single_similar_place'>" +
+                              "<a href='" + place[1] +"'>" +
+                                place[0] +
+                              "</a></li>"
+                            )
+    }
+  }
+
+  loadSimilarPlaces();
+
+</script>
+
+<script async defer
+src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAoX1pdP9-vueaY2JVmIxViYdUdY1DbHJM&callback=initMap&libraries=geometry">
+</script>
+
+</body>
+</html>

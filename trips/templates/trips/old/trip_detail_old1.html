@@ -1,0 +1,389 @@
+{% extends "base.html" %}
+{% load static %}
+
+
+{% block meta %}
+<meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
+<meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
+{% endblock %}
+
+{% block styles %}
+<style>
+  /* Always set the map height explicitly to define the size of the div
+   * element that contains the map. */
+  #map {
+    height: 450px;
+  }
+  /* Optional: Makes the sample page fill the window. */
+  html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+  }
+
+  .btn-space {
+    margin-right: 5px;
+  }
+
+  .place-tag {
+    margin: 5px;
+    padding-left: 25px;
+    background-color: #aff3ff;
+    height: 3em;
+  }
+
+  .list-group-item {
+    position: relative;
+    padding-right: 30px;
+    cursor: pointer;
+  }
+
+  .badge {
+    background-color: #f89406;
+  }
+
+  .move-place {
+    position: absolute;
+    right: 3px;
+    top: 3px;
+    background-color: transparent;
+  }
+
+  .travel_mode_span .label {
+    margin-bottom: 8px;
+    display: inline-block;
+  }
+
+  .travel_mode_span h4 {
+    margin: 2px;
+  }
+
+  .glyphicon {
+    font-size: 1.3em;
+    margin-left: 35px;
+    margin-right: 10px;
+    position: relative;
+    top: 7px;
+  }
+
+  .pull-right {
+    margin-left: 5px;
+  }
+
+  #obtain_weather_button {
+    position: absolute;
+    left: 300px;
+    top: 7px;
+    display: none;
+  }
+
+</style>
+{% endblock %}
+
+{% block content %}
+<div id="delete_confirm_window" class="container alert alert-danger text-center" style="display: none;">
+  <h4>Are you sure you want to delete this trip?</h4>
+  <a class="btn btn-danger" href="/trip/{{ trip.id }}/delete/">Confirm</a>
+  <button class="btn btn-default" style="margin-left:15px;">Cancel</button>
+</div>
+<div class="container">
+
+  <h1>
+    {{ trip.title}}
+    {% if request.user == trip.creator %}
+      <button class="btn btn-danger pull-right" id="delete_trip_button">Delete the trip</button>
+      <button class="btn btn-default pull-right" type="button" name="button">Share</button>
+      <a class="btn btn-warning pull-right" href="/trip/{{ trip.id }}/update/">Edit the trip</a>
+    {% endif %}
+  </h1>
+
+
+  <div class="panel panel-default">
+    <div class="panel-heading">
+      <!-- <h3 class="panel-title"> Basic Info </h3> -->
+    </div>
+    <div class="panel-body">
+      <h4>Created by: <a href="/profiles/{{ trip.creator.username }}">{{ trip.creator.username }}</a> | Group Size: {{ trip.group_size }}</h4>
+      <h4>{{ trip.start_date }}---{{ trip.get_end_date }} | {{ trip.get_total_duration_days_format }} | {{ trip.get_total_dist_miles }} miles.</h4>
+      <span class="label label-success"> Likes: {{ trip.get_likes_count }}</span>
+      {% if trip.looking_for_partner %}
+        <span class="label label-danger"> Looking for partners! </span>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="panel panel-default">
+    <!-- <div class="panel-heading">
+      <h3 class="panel-title"> Route </h3>
+    </div> -->
+    <div class="panel-body">
+
+      <div class="row">
+        <div class="col-sm-7 col-xs-12 ">
+          <div id="map" height="460px" width="100%"></div>
+        </div>
+
+        <div class="col-sm-4 placeListContainer">
+            <!-- <h2 style="margin-top: 5px;"> Summary </h2>
+            <br> -->
+            <div id="listOfPlaces" class="list-group">
+            </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="panel panel-default">
+    <div class="panel-heading">
+      <!-- <h3 class="panel-title"> OP's review </h3> -->
+    </div>
+    <div class="panel-body">
+      {% if trip.description %}
+      <h4>{{ trip.description }}</h4>
+      {% else %}
+      <h4> No description. </h4>
+      {% endif %}
+    </div>
+  </div>
+
+  {% if request.user == trip.creator %}
+  <!-- <a class="btn btn-default" href="/trip/{{ trip.id }}/update/">Edit</a> -->
+  {% else %}
+  <div class="panel panel-default">
+    <div class="panel-heading">
+      <h3 class="panel-title"> Comments </h3>
+    </div>
+    <div class="panel-body">
+      {% if request.user.is_authenticated %}
+      <button class="btn btn-success" id="like_trip_button" onclick="likeTheTrip({{ trip.id }})" type="button" name="button">
+        {% if liked %}
+          Unlike it
+        {% else %}
+          Like it
+        {% endif %}
+      </button>
+      <button class="btn btn-default" type="button" name="button">Share</button>
+      {% else %}
+      <h4>Like it? <a href="/login/">Login</a> or <a href="/register/">register</a>!</h4>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+
+</div>
+
+<script type="text/javascript" src="https://code.jquery.com/jquery-2.1.4.js"></script>
+<script type="text/javascript" src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+<script type="text/javascript">
+  var PlaceMarked = class PlaceMarked {
+                      constructor(marker){
+                        this.marker                    = marker;
+                        this.infowindow                = marker.infowindow;
+                        this.lat                       = marker.getPosition().lat();
+                        this.lng                       = marker.getPosition().lng();
+                        this.latLng                    = {lat: marker.getPosition().lat(), lng: marker.getPosition().lng()};
+                        this.name                      = "Unknown.";
+                        this.prevLatLng                = null;
+                        this.travelModeToHere          = "DRIVING";
+                        this.travelTimeToHereInText    = "";
+                        this.travelTimeToHereInSec     = 0;
+                        this.travelDistToHereInText    = "";
+                        this.travelDistToHereInMeter   = 0;
+                        this.encodedPolyline           = "";
+                        this.daysToStay                = 0;
+                        this.weatherArrival            = "";
+                        this.weatherDeparture          = "";
+                      }
+  }
+  var map;
+  var directionsService;
+  var markers = [];
+  var places = [];
+  var directionsDisplay;
+  var directionsDisplayArray = [];
+
+  var iconURLPrefix = "http://chart.apis.google.com/chart?chst=d_map_pin_letter&chld=";
+  var markerBackgroundColor = "407F7D"  // Used in the api for "icon" argument
+  var markerNumberColor = "FFFFFF"      // Used in the api for "icon" argument
+
+  function initMap() {
+    var directionsService = new google.maps.DirectionsService;
+    var california = {lat: 37.4419, lng: -122.1419};
+
+    map = new google.maps.Map(document.getElementById('map'),{
+      center: california,
+      zoom: 7
+    });
+
+    geocoder = new google.maps.Geocoder;
+    // infowindow = new google.maps.InfoWindow({
+    //   content: document.getElementById('form')
+    // })
+    {% for place in places %}
+      var marker = new google.maps.Marker({
+        position: {lat: {{ place.lat }}, lng: {{ place.lng }}},
+        map: map,
+        icon: iconURLPrefix + {{ forloop.counter }} + "|" + markerBackgroundColor + "|" + markerNumberColor
+      });
+      marker.infowindow = new google.maps.InfoWindow({
+          maxWidth: 270
+      });
+      marker.infowindow.setContent("<p>{{ place.displayed_name }}</p>")
+      google.maps.event.addListener(marker, 'click', function() {
+        this.infowindow.open(map, this);
+      });
+
+      markers.push(marker);
+      var new_place = new PlaceMarked(marker);
+      new_place.name = "{{ place.displayed_name }}";
+      new_place.latLng = {lat: marker.getPosition().lat(), lng: marker.getPosition().lng()};
+      new_place.daysToStay = {{ place.days_to_stay }};
+      // var counter = {{ forloop.counter }};
+      {% if not forloop.first %}
+        console.log(places)
+        new_place.prevLatLng = places[places.length-1].latLng;
+        new_place.travelModeToHere = "{{ place.travel_mode_to_here }}".toUpperCase();
+        new_place.travelTimeToHereInText = "{{ place.travel_time_to_here_text }}";
+        new_place.travelDistToHereInText = "{{ place.travel_dist_to_here_text }}";
+      {% endif %}
+
+      places.push(new_place)
+    {% endfor %}
+
+    showRoutesOnMap();
+    showPlaceListDiv();
+    adjustMapCamera();
+  }
+
+  function showRoutesOnMap(){
+    var directionsService = new google.maps.DirectionsService();
+    for (var display of directionsDisplayArray) {
+      if (display != null) {
+        display.setMap(null);
+        display = null;
+      }
+    }
+    places.forEach(function(place, index){
+      if (place.prevLatLng != null){
+      var request = {
+        origin: place.prevLatLng,
+        destination: place.latLng,
+        travelMode: place.travelModeToHere
+      };
+      directionsService.route(request, function(response, status) {
+        if (status == 'OK') {
+          var directionsDisplay = new google.maps.DirectionsRenderer({
+                                                  suppressMarkers: true,
+                                                  suppressInfoWindows: true,
+                                                  preserveViewport: true,
+                                                  suppressBicyclingLayer: true
+                                                });
+          directionsDisplay.setMap(map);
+          directionsDisplay.setDirections(response);
+
+          var strokeColor;
+          if (place.travelModeToHere == "BICYCLING"){
+            strokeColor = 'orange';
+          } else if (place.travelModeToHere == "WALKING") {
+            strokeColor = 'red';
+          } else{
+            strokeColor = '#0088FF';
+          }
+          directionsDisplay.setOptions({
+            polylineOptions: {
+              strokeColor: strokeColor,
+              strokeWeight: 6,
+              strokeOpacity: 0.6
+            }
+          });
+
+          directionsDisplayArray.push(directionsDisplay);
+        } else  {
+          if (status == 'ZERO_RESULTS') {
+            // alert("A route is not avalaible with the selected travel mode!");
+          }
+        }
+      });
+      }
+    })
+  }
+
+  function showPlaceListDiv(){
+    var container = $('#listOfPlaces');
+    container.html("");
+    places.forEach(function(place, index){
+      if (index > 0) {
+        var travelModeString = place.travelModeToHere;
+        container.append(
+                          '<span class="travel_mode_span" id="travel_mode_span_' + index + '">' +
+                            '<h4>' +
+                              '<i class="glyphicon glyphicon-arrow-down" aria-hidden="true"></i>' +
+                              '<a class="label label-info">' + travelModeString +'</a>   ' +
+                              '<span class="label label-warning">' + place.travelTimeToHereInText.replace("hours", "hrs").replace("hour", "hr") + '</span>' +
+                              '<span class="label label-success">' + place.travelDistToHereInText + '</span>' +
+                            '</h4>' +
+                          '</span>'
+                        );
+      }
+
+      var daysToStayString = "< 1 day";
+      var day = place.daysToStay;
+      if (day >= 1) {
+        daysToStayString = (day == 1)? "1 day" : day.toString()+" days"
+      }
+      container.append('<div class="list-group-item" ' +
+                        'onclick="popUpInfowindowByIndex(' + index + ')" ' +
+                        'id="place_tag_' + index + '" ' +
+                        'data-index=' + index + '>' +
+                        '<span class="badge">' + daysToStayString + '</span>' +
+                        place.name + '</div>'
+                      );
+    })
+  }
+
+  function adjustMapCamera(){
+    var bounds = new google.maps.LatLngBounds();
+    for (var marker of markers) {
+     bounds.extend(marker.getPosition());
+    }
+    map.fitBounds(bounds);
+  }
+
+  function likeTheTrip(tripId){
+    var likedUrl = '/api/trip/' + tripId + '/like/'
+    $.ajax({
+      method: "GET",
+      url: likedUrl,
+      success: function(data) {
+        if (data.liked){
+          $("#like_trip_button").text("Liked");
+        } else {
+          $("#like_trip_button").text("Unliked");
+        }
+      },
+      error: function(data) {
+        console.log(data)
+      }
+    })
+  }
+
+  function popUpInfowindowByIndex(index) {
+    places[index].infowindow.open(map, places[index].marker);
+  }
+
+  $(document.body).on("click", "#delete_trip_button", function(e){
+    $("#delete_confirm_window").fadeIn();
+  });
+
+  $(document.body).on("click", "#delete_confirm_window button", function(e){
+    // "Cancel" button pressed.
+    $("#delete_confirm_window").fadeOut();
+  });
+</script>
+
+<script async defer
+src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAoX1pdP9-vueaY2JVmIxViYdUdY1DbHJM&callback=initMap">
+</script>
+
+{% endblock content %}

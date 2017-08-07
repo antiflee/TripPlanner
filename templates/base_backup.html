@@ -1,0 +1,256 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+	{% block meta %}
+	{% endblock %}
+	<title>Trip Planner</title>
+	<link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+	<link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+	<link href="https://fonts.googleapis.com/css?family=Lato" rel="stylesheet">
+	<link rel="icon" type="image/png" href="{% static 'home/images/logo-darker.png' %}" />
+	<style media="screen">
+		body {
+			font-family: "Lato", Georgia, serif;
+		}
+
+		h1 {
+			margin-top: 5px;
+		}
+
+		.navbar-inverse {
+			background: #2c3e50;
+			font-size: 120%;
+		}
+
+		.navbar-inverse .navbar-nav>li>a {
+			color: white;
+		}
+
+		.navbar-inverse .navbar-nav>li>a:hover {
+			background: #242424;
+		}
+
+		.navbar-inverse .navbar-brand {
+			color: white;
+		}
+
+		#logo {
+			padding: 0;
+			position: relative;
+			top: 2px;
+		}
+
+		#messagewindow {
+			position: fixed;
+			margin: auto;
+			width: 500px;
+			margin: 10px auto;
+			left: 0;
+			right: 0;
+			display: none;
+			z-index: 3;
+		}
+		.thumbnail {
+			position: relative;
+		}
+		.looking_for_partner {
+			position: absolute;
+			top: 7px;
+			left: 15px;
+		}
+		.trip-title {
+	    display:block;
+	    width:100%;
+	    height:70px;
+	    overflow:hidden;
+		}
+		.thumbnail_img_div {
+			 height: 250px;
+			 width: 352px;
+			 overflow: hidden;
+		}
+	</style>
+	  {% block styles %}
+	  {% endblock %}
+</head>
+<body>
+	{% include 'navbar.html' %}
+	<div class="alert alert-success" id="messagewindow">
+		Some text goes here.
+	</div>
+  {% block content %}
+  {% endblock %}
+
+<script type="text/javascript">
+
+	function getParameterByName(name, url) {
+			if (!url) url = window.location.href;
+			name = name.replace(/[\[\]]/g, "\\$&");
+			var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
+					results = regex.exec(url);
+			if (!results) return null;
+			if (!results[2]) return '';
+			return decodeURIComponent(results[2].replace(/\+/g, " "));
+	}
+
+	var tripList = [];
+	var sort_by;
+	var looking_for_partner = false;
+
+	function loadTripContainer(tripContainerID, sort_by){
+		// console.log("loadTripContainer function called.")
+
+		var query = getParameterByName('q')
+		var sort = getParameterByName('sort')
+		if (sort_by){
+			sort = sort_by;
+		}
+		tripList = [];
+		var nextTripUrl;
+		var initialURL = "/api/trip/";
+		var tripContainer;
+		if (tripContainerID) {
+			tripContainer = $("#" + tripContainerID)
+		} else {
+			tripContainer = $("#trip-container")
+		}
+
+		tripContainer.html("")
+		var initialURL = tripContainer.attr("data-url") || "/api/trip/";
+
+		// $(document.body).on("click", ".trip-like", function(e) {
+		// 	e.preventDefault()
+		// 	var this_ = $(this)
+		// 	var tripId = this_.attr("data-id")
+		// 	var likedUrl = '/api/trip/' + tripId + '/like/'
+		// 	$.ajax({
+		// 		method: "GET",
+		// 		url: likedUrl,
+		// 		success: function(data) {
+		// 			if (data.liked){
+		// 				this_.text("Liked")
+		// 			} else {
+		// 				this_.text("Unliked")
+		// 			}
+		// 		},
+		// 		error: function(data) {
+		// 			console.log(error)
+		// 			console.log(data)
+		// 		}
+		// 	})
+		// })
+
+		function parseTrip() {
+			if(tripList == 0){
+				// tripContainer.text("No trips currently found.")
+				tripContainer.html("<h4>No trips found</h4>")
+			} else {
+				$.each(tripList, function(key, value){
+					var tripKey = key;
+					attachTrip(value);
+				})
+			}
+		}
+
+		function attachTrip(tripValue) {
+			var tripCreator = tripValue.creator;
+			var tripTitle = tripValue.title;
+			var likesCount = tripValue.likes;
+			var looking_for_partner = tripValue.looking_for_partner;
+			var thumbnail_origin = tripValue.thumbnail_origin;
+			// var verb = 'Like';
+			// if (tripValue.did_like){
+			// 	verb = 'Unlike'
+			// }
+			if (looking_for_partner){
+				var looking_for_partner_text = "   <h4 class='label label-danger looking_for_partner'> Looking for partners!</h4>";
+			} else {
+				var looking_for_partner_text = ""
+			}
+
+			// var tripFormattedHtml = "<div class=\"media\"><div class=\"media-body\">" + tripTitle +
+			// 												"<br> via <a href='" + tripCreator.url + "'>" + tripCreator.username +
+			// 												"</a> | " + "<a href='/trip/" + tripValue.id + "'>View</a>" +
+			// 						            " | <a href='#' class='trip-like' data-id='" + tripValue.id +  "'> " + verb + " </a>" + "</div></div>" +
+			// 												"<span class='label label-success'> Likes:" + likesCount + "</span>" +
+			// 												"<hr>"
+
+			var tripFormattedHtml =   "<div class='col-sm-6 col-md-4'>" +
+															    "<div class='thumbnail'>" +
+																		looking_for_partner_text +
+																		"<div class='thumbnail_img_div'>" +
+																		"<a href='/trip/" + tripValue.id + "'>" +
+																			"<img class='thumbnail_img' src='" + thumbnail_origin + "' alt='No Image Available'>" +
+																		"</a>" +
+																		"</div>" +
+															      "<div class='caption'>" +
+															        "<h4 class='trip-title'>" + tripTitle + "</h4>" +
+															        "<h5 style='margin-bottom:0;'>by <strong><a href='" + tripCreator.url + "'>" + tripCreator.username + "</a></strong>" +
+																				// "<a href='/trip/" + tripValue.id + "'>View</a>" +
+																				// "   <span class='label label-success pull-right'> Likes:" + likesCount + "</span>" +
+																				" <span><i class='glyphicon glyphicon-thumbs-up pull-right'>(" + likesCount + ")</i></span>" +
+																			"</h5>" +
+															        // "<p class='text-right'>" +
+																			// 	"<a href='/trip/" + tripValue.id + "' class='btn btn-primary' role='button'>View</a>" +
+																			// 	// "<a href='#' class='btn btn-default' role='button'>Button</a>" +
+																			// 	"<a href='#' class='trip-like btn btn-success' data-id='" + tripValue.id +  "' role='button'> " + verb + " </a>" +
+																			// "</p>" +
+															      "</div>" +
+															    "</div>" +
+															  "</div>"
+
+			$("#trip-container").append(tripFormattedHtml);
+
+			// Make sure all thumbnails get equal height.
+			// See https://stackoverflow.com/a/21798290/6768084
+			// $(".thumbnail").height(Math.max.apply(null, $(".thumbnail").map(function() { return $(this).height(); })));
+		}
+
+		function fetchTrips(url){
+			if (!url) {
+				fetchUrl = initialURL
+			} else {
+				fetchUrl = url
+			}
+			$.ajax({
+				url: fetchUrl,
+				data: {
+					"q": query,
+					"sort": sort,
+					"looking_for_partner": looking_for_partner,
+				},
+				method: "GET",
+				success: function(data) {
+					console.log("success")
+					tripList = data.results;
+					console.log(data.results)
+					if (data.next){
+						nextTripUrl = data.next;
+					} else {
+						$("#loadmore").css("display", "none")
+					}
+					parseTrip()
+				},
+				error: function(data) {
+					console.log("error")
+					console.log(data)
+				}
+			})
+		}
+
+		fetchTrips();
+
+		$("#loadmore").bind("click", function(event){
+			event.preventDefault();
+			if (nextTripUrl) {
+				fetchTrips(nextTripUrl);
+			}
+			// load more items
+		});
+	}
+	</script>
+	{% block script %}{% endblock %}
+
+</body>
+</html>

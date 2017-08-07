@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+{% block title %}Register| {{ block.super }}{% endblock title %}
+{% block content %}
+<div class="container">
+  <div class="row">
+    <div class="col-sm-6 col-sm-offset-3">
+      <h1 class="text-center">Register</h1>
+      <hr>
+        <form class="form {% if form_class %}{{ form_class }} {% endif %}" action="{% if action_url %}{{action_url }}{% endif %}" method="post">
+          {% csrf_token %}
+          {{ form|crispy }}
+          <br>
+          <input class='btn btn-primary btn-block' type="submit" name="" value="Register">
+        </form>
+
+        <p class="text-right"><a href="/login/">Already have an account? Log in!</a></p>
+    </div>
+  </div>
+</div>
+{% endblock content %}

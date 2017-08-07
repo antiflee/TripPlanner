@@ -1,0 +1,293 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+	{% block meta %}
+	{% endblock %}
+	<title>Trip Planner</title>
+	<link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+	<link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+	<link href="https://fonts.googleapis.com/css?family=Lato" rel="stylesheet">
+	<link rel="icon" type="image/png" href="{% static 'home/images/logo-darker.png' %}" />
+	<style media="screen">
+		body {
+			font-family: "Lato", Georgia, serif;
+		}
+
+		h1 {
+			margin-top: 5px;
+		}
+
+		.navbar-inverse {
+			background: #2c3e50;
+			font-size: 120%;
+		}
+
+		.navbar-inverse .navbar-nav>li>a {
+			color: white;
+		}
+
+		.navbar-inverse .navbar-nav>li>a:hover {
+			background: #242424;
+		}
+
+		.navbar-inverse .navbar-brand {
+			color: white;
+		}
+
+		.nav.nav-tabs .nav-item a {
+			border-radius: 1px;
+		}
+
+		#logo {
+			padding: 0;
+			position: relative;
+			top: 2px;
+		}
+
+		#messagewindow {
+			position: fixed;
+			margin: auto;
+			width: 500px;
+			margin: 10px auto;
+			left: 0;
+			right: 0;
+			display: none;
+			z-index: 3;
+		}
+
+	  #search-clear-button {
+	    position: absolute;
+	    right: 12px;
+	    top: 0;
+	    bottom: 0;
+	    height: 14px;
+	    margin: auto;
+	    font-size: 14px;
+	    cursor: pointer;
+	    color: #ccc;
+			display: none;
+	  }
+
+		.thumbnail {
+			position: relative;
+		}
+
+		.looking_for_partner {
+			position: absolute;
+			top: 7px;
+			left: 15px;
+		}
+
+		.trip-title {
+	    display:block;
+	    width:100%;
+	    height:70px;
+	    overflow:hidden;
+		}
+
+		.thumbnail_img_div {
+			 height: 250px;
+			 width: 352px;
+			 overflow: hidden;
+		}
+	</style>
+	  {% block styles %}
+	  {% endblock %}
+</head>
+<body>
+	{% include 'navbar.html' %}
+	<div class="alert alert-success" id="messagewindow">
+		Some text goes here.
+	</div>
+  {% block content %}
+  {% endblock %}
+
+<script type="text/javascript">
+
+	function getParameterByName(name, url) {
+			if (!url) url = window.location.href;
+			name = name.replace(/[\[\]]/g, "\\$&");
+			var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
+					results = regex.exec(url);
+			if (!results) return null;
+			if (!results[2]) return '';
+			return decodeURIComponent(results[2].replace(/\+/g, " "));
+	}
+
+	var tripList = [];
+	var sort_by;
+	var looking_for_partner = false;
+
+	function loadTripContainer(tripContainerID, q_, sort_by, trips_this_user_liked, url_){
+		var query = q_ || getParameterByName('q') || $("#navbar-search-box-list-item input[type='text']").val();
+		var sort = getParameterByName('sort')
+		// console.log("trips_this_user_liked",trips_this_user_liked)
+		if (sort_by){
+			sort = sort_by;
+		}
+		tripList = [];
+		var nextTripUrl;
+		var initialURL = "/api/trip/";
+		var tripContainer;
+		if (tripContainerID) {
+			tripContainer = $("#" + tripContainerID)
+		} else {
+			tripContainer = $("#trip-container")
+		}
+
+		tripContainer.html("")
+		var initialURL = tripContainer.attr("data-url") || "/api/trip/";
+
+		function parseTrip() {
+			if(tripList == 0){
+				tripContainer.html("<h4>No trips found</h4>")
+			} else {
+				$.each(tripList, function(key, value){
+					var tripKey = key;
+					attachTrip(value);
+				})
+			}
+		}
+
+		function attachTrip(tripValue) {
+			var tripCreator = tripValue.creator;
+			var tripTitle = tripValue.title;
+			var likesCount = tripValue.likes;
+			var looking_for_partner = tripValue.looking_for_partner;
+			var thumbnail_origin = tripValue.thumbnail_origin;
+
+			if (looking_for_partner){
+				var looking_for_partner_text = "   <h4 class='label label-danger looking_for_partner'> Looking for partners!</h4>";
+			} else {
+				var looking_for_partner_text = ""
+			}
+
+			var tripFormattedHtml =   "<div class='col-sm-6 col-md-4'>" +
+															    "<div class='thumbnail'>" +
+																		looking_for_partner_text +
+																		"<div class='thumbnail_img_div'>" +
+																		"<a href='/trip/" + tripValue.id + "'>" +
+																			"<img class='thumbnail_img' src='" + thumbnail_origin + "' alt='No Image Available'>" +
+																		"</a>" +
+																		"</div>" +
+															      "<div class='caption'>" +
+															        "<h4 class='trip-title'>" + tripTitle + "</h4>" +
+															        "<h5 style='margin-bottom:0;'>by <strong><a href='" + tripCreator.url + "'>" + tripCreator.username + "</a></strong>" +
+																				" <span><i class='glyphicon glyphicon-thumbs-up pull-right'>(" + likesCount + ")</i></span>" +
+																			"</h5>" +
+															      "</div>" +
+															    "</div>" +
+															  "</div>"
+
+			$("#trip-container").append(tripFormattedHtml);
+		}
+
+		function fetchTrips(url){
+			fetchUrl = url || initialURL
+			// console.log(trips_this_user_liked)
+			$.ajax({
+				url: fetchUrl,
+				data: {
+					"q": query,
+					"sort": sort,
+					"looking_for_partner": looking_for_partner,
+					"trips_this_user_liked": trips_this_user_liked
+				},
+				method: "GET",
+				success: function(data) {
+					// console.log("success")
+					tripList = data.results;
+					// console.log(data.results)
+					if (data.next){
+						nextTripUrl = data.next;
+					} else {
+						$("#loadmore").css("display", "none")
+					}
+					parseTrip()
+				},
+				error: function(data) {
+					console.log("error")
+					console.log(data)
+				}
+			})
+		}
+
+		if (url_ === undefined) {
+			fetchTrips();
+		} else {
+			fetchTrips(url_);
+		}
+
+
+		$("#loadmore").bind("click", function(event){
+			event.preventDefault();
+			if (nextTripUrl) {
+				fetchTrips(nextTripUrl);
+			}
+			// load more items
+		});
+	}
+
+	// Auto load more trips when scrolling to the bottom.
+	$(function(){
+		var btn = $('#loadmore');
+		var win = $(window);
+		win.scroll(function(e){
+				var scrollTop = win.scrollTop();
+				if (btn.css('display') !== 'none' && scrollTop + win.height() >= $(document).height()) {
+					btn.click();
+				}
+		});
+	});
+
+	// Auto search.
+	$(document).ready(function(){
+		var typingTimer;
+		var doneInterval = 800; // in ms
+		var searchInput = $("#navbar-search-box-list-item input[type=text]")
+		var searchQuery;
+
+		searchInput.keyup(function(event){
+			searchQuery = $(this).val()
+			clearTimeout(typingTimer)
+			typingTimer = setTimeout(doneSearchTyping, doneInterval)  // Start searching after doneInterval not typing.
+		})
+
+		searchInput.keydown(function(event){
+			clearTimeout(typingTimer)
+		})
+
+		function doneSearchTyping() {
+			// do search
+			var url_ = '/api/trip/';
+			loadTripContainer("trip-container", searchQuery, "", false, url_);
+		}
+	})
+
+	$("#navbar-search-box-list-item input[type='text']").attr("placeholder", "Search trips...")
+
+	var searchInput = $("#navbar-search-box-list-item input[type='text']");
+
+	searchInput.on("keyup", function(e) {
+		if ($(this).val() === "") {
+			$("#search-clear-button").hide();
+		} else {
+			$("#search-clear-button").show();
+		}
+	})
+
+  $("#search-clear-button").on("click", function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    $("#navbar-search-box-list-item input[type='text']").val("");
+    $("#search-clear-button").hide();
+  })
+
+	</script>
+
+	{% block script %}
+	{% endblock %}
+
+</body>
+</html>

@@ -1,0 +1,255 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
+	<title>Trip Planner</title>
+	<link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+	<link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+	<link href="https://fonts.googleapis.com/css?family=Lato" rel="stylesheet">
+	<link rel="icon" type="image/png" href="{% static 'home/images/logo-darker.png' %}" />
+
+<style media="screen">
+  /* Always set the map height explicitly to define the size of the div
+   * element that contains the map. */
+  #map {
+    height: 535px;
+    border: 1px solid silver;
+  }
+
+  /* Optional: Makes the sample page fill the window. */
+  html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+  }
+
+  body {
+    font-family: "Lato", Georgia, serif;
+  }
+
+  h1 {
+    margin-top: 5px;
+  }
+
+  .navbar-inverse {
+    background: #2c3e50;
+    font-size: 120%;
+  }
+
+  .navbar-inverse .navbar-nav>li>a {
+    color: white;
+  }
+
+  .navbar-inverse .navbar-nav>li>a:hover {
+    background: #242424;
+  }
+
+  .navbar-inverse .navbar-brand {
+    color: white;
+  }
+
+  .nav.nav-tabs .nav-item a {
+    border-radius: 1px;
+    font-size: 1.2em;
+  }
+
+  .show-trip-route {
+    float: right;
+    margin-left: 5px;
+    cursor: pointer;
+  }
+
+  /*a:hover {
+    text-decoration: none;
+  }*/
+
+  .like-count-display {
+    float: right;
+
+  }
+
+  #navbar-search-box-list-item {
+    display: none;
+  }
+
+  #months-list-group li {
+    cursor: pointer;
+  }
+
+  #logo {
+    padding: 0;
+    position: relative;
+    top: 2px;
+  }
+
+  #messagewindow {
+    position: fixed;
+    margin: auto;
+    width: 500px;
+    margin: 10px auto;
+    left: 0;
+    right: 0;
+    display: none;
+    z-index: 3;
+  }
+
+  #search-clear-button {
+    position: absolute;
+    right: 5px;
+    top: 0;
+    bottom: 0;
+    height: 14px;
+    margin: auto;
+    font-size: 14px;
+    cursor: pointer;
+    color: #ccc;
+    display: none;
+  }
+
+  #prev-page-button, #next-page-button {
+    cursor: pointer;
+    color: brown;
+  }
+
+  #prev-page-button {
+    margin: 0 15px 0 192px;
+  }
+
+  .thumbnail {
+    position: relative;
+  }
+
+  .thumbnail_img_div {
+     height: 250px;
+     width: 352px;
+     overflow: hidden;
+  }
+</style>
+
+{% include 'navbar.html' %}
+<div class="container">
+  <h1 class="text-center">Heatmap by Popularity</h1>
+  <br>
+  <div class="row">
+    <div class="col-sm-8 col-sm-offset-1">
+      <div id="map" height="460px" width="100%"></div>
+    </div>
+    <div class="col-sm-2">
+      <ul id="months-list-group" class="list-group">
+        <li class="list-group-item active" onclick="toggleHeatmapByMonth(-1)">Total</li>
+        <li class="list-group-item" onclick="toggleHeatmapByMonth(0)">January</li>
+        <li class="list-group-item" onclick="toggleHeatmapByMonth(1)">February</li>
+        <li class="list-group-item" onclick="toggleHeatmapByMonth(2)">March</li>
+        <li class="list-group-item" onclick="toggleHeatmapByMonth(3)">April</li>
+        <li class="list-group-item" onclick="toggleHeatmapByMonth(4)">May</li>
+        <li class="list-group-item" onclick="toggleHeatmapByMonth(5)">June</li>
+        <li class="list-group-item" onclick="toggleHeatmapByMonth(6)">July</li>
+        <li class="list-group-item" onclick="toggleHeatmapByMonth(7)">August</li>
+        <li class="list-group-item" onclick="toggleHeatmapByMonth(8)">September</li>
+        <li class="list-group-item" onclick="toggleHeatmapByMonth(9)">October</li>
+        <li class="list-group-item" onclick="toggleHeatmapByMonth(10)">November</li>
+        <li class="list-group-item" onclick="toggleHeatmapByMonth(11)">December</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<script type="text/javascript" src="https://code.jquery.com/jquery-2.1.4.js"></script>
+<script type="text/javascript" src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+<script type="text/javascript">
+  var map;
+  var center;
+  var heatmap;
+  var heatMapDataTotal = [];
+  var heatMapDataByMonth = [[],[],[],[],[],[],[],[],[],[],[],[]];
+  var gradient = [
+    'rgba(0, 255, 255, 0)',
+    'rgba(0, 255, 255, 1)',
+    'rgba(0, 191, 255, 1)',
+    'rgba(0, 127, 255, 1)',
+    'rgba(0, 63, 255, 1)',
+    'rgba(0, 0, 255, 1)',
+    'rgba(0, 0, 223, 1)',
+    'rgba(0, 0, 191, 1)',
+    'rgba(0, 0, 159, 1)',
+    'rgba(0, 0, 127, 1)',
+    'rgba(63, 0, 91, 1)',
+    'rgba(127, 0, 63, 1)',
+    'rgba(191, 0, 31, 1)',
+    'rgba(255, 0, 0, 1)'
+  ]
+
+  function initMap() {
+     // Example: {location: new google.maps.LatLng(37.782, -122.447), weight: 0.5},
+    center = new google.maps.LatLng(41.850033, -97.6500523);
+    var lat = 0,
+        lng = 0;
+
+    {% for place in object_list %}
+      lat = {{place.lat}}
+      lng = {{place.lng}}
+      if (lat != 0 && lng != 0) {
+        heatMapDataTotal.push({
+                          location: new google.maps.LatLng(lat, lng),
+                          weight: {{ place.get_trips_count }}
+                        })
+      }
+
+      var place_count_by_month = {{ place.get_month_distribution }};
+      // if ("{{ place.name }}" == "North Vancouver, BC") {
+      //   console.log(place_count_by_month)
+      // }
+      if (lat != 0 && lng != 0) {
+        for (var i=0; i<12; i++) {
+          if (place_count_by_month[i] > 0) {
+          heatMapDataByMonth[i].push({
+            location: new google.maps.LatLng(lat, lng),
+            weight: place_count_by_month[i]
+          })
+          }
+        }
+      }
+    {% endfor %}
+
+    map = new google.maps.Map(document.getElementById('map'), {
+      center: center,
+      zoom: 4,
+    });
+
+    heatmap = new google.maps.visualization.HeatmapLayer({
+      data: heatMapDataTotal,
+      gradient: gradient
+    });
+    heatmap.setMap(map);
+  }
+
+  function toggleHeatmapByMonth(i) {
+    heatmap.setMap(null);
+    if (i >= 0){
+      heatmap = new google.maps.visualization.HeatmapLayer({
+        data: heatMapDataByMonth[i],
+        gradient: gradient
+      });
+    } else {
+      heatmap = new google.maps.visualization.HeatmapLayer({
+        data: heatMapDataTotal,
+        gradient: gradient
+      });
+    }
+    heatmap.setMap(map);
+
+    $("#months-list-group").children("li").each(function(){
+      $(this).removeClass("active");
+    })
+    $("#months-list-group li:nth-child("+(i+2)+")").addClass("active");
+  }
+</script>
+
+<script async defer
+src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAoX1pdP9-vueaY2JVmIxViYdUdY1DbHJM&callback=initMap&libraries=visualization">
+</script>
+
+</body>
+</html>

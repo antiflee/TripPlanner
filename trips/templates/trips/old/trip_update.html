@@ -1,0 +1,2134 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
+  <title>Trip Planner</title>
+  <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+  <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+  <link href="https://fonts.googleapis.com/css?family=Lato" rel="stylesheet">
+  <link rel="icon" type="image/png" href="{% static 'home/images/logo-darker.png' %}" />
+  <style media="screen">
+    body {
+      font-family: "Lato", Georgia, serif;
+    }
+
+    h1 {
+      margin-top: 5px;
+    }
+
+    .navbar-inverse {
+      background: #2c3e50;
+      font-size: 120%;
+    }
+
+    .navbar-inverse .navbar-nav>li>a {
+      color: white;
+    }
+
+    .navbar-inverse .navbar-nav>li>a:hover {
+      background: #242424;
+    }
+
+    .navbar-inverse .navbar-brand {
+      color: white;
+    }
+
+    #logo {
+      padding: 0;
+      position: relative;
+      top: 2px;
+    }
+
+    #messagewindow {
+      position: fixed;
+      margin: auto;
+      width: 500px;
+      margin: 10px auto;
+      left: 0;
+      right: 0;
+      display: none;
+      z-index: 3;
+    }
+
+    .thumbnail {
+      position: relative;
+    }
+
+    .looking_for_partner {
+      position: absolute;
+      top: 7px;
+      left: 15px;
+    }
+
+    .trip-title {
+      display:block;
+      width:100%;
+      height:70px;
+      overflow:hidden;
+    }
+
+    .thumbnail_img_div {
+       height: 250px;
+       width: 352px;
+       overflow: hidden;
+    }
+
+    /* Always set the map height explicitly to define the size of the div
+     * element that contains the map. */
+    #map {
+      height: 450px;
+    }
+
+    /* Optional: Makes the sample page fill the window. */
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+    }
+
+    input[type=number]{
+      width: 80px;
+    }
+
+    .input-group-addon {
+      background-color: #fcf7f2;
+    }
+
+    .btn-space {
+      margin-right: 5px;
+    }
+
+    .place-list-container {
+      z-index: 3;
+    }
+
+    .place-tag {
+      margin: 5px;
+      padding-left: 25px;
+      background-color: #aff3ff;
+      height: 3em;
+    }
+
+    /*#listOfIcons .list-group-item {
+      height: 42px;
+    }*/
+
+    .travel-mode-icon {
+      color: slategray;
+      cursor:pointer;
+      margin-right:10px;
+    }
+
+    .travel-time-text {
+      /*position: absolute;*/
+    }
+
+    .time-exceed-warning {
+      color: darkred;
+      font-weight: bold;
+    }
+
+    /*.time-fixed-text {
+      color: darkblue;
+    }*/
+
+    .infowindow-place-name {
+      margin:5px;
+    }
+
+    .infowindow-sub-div {
+      white-space: pre-wrap;
+    }
+
+    .custom-name-display {
+      position: absolute;
+      border-width: 0;
+      width: 215px;
+    }
+
+    .note_icon {
+      position: absolute;
+      left: 49px;
+      top: 7px;
+      color: sienna;
+      display: none;
+    }
+
+    .insert_place_icon, .remove_place_icon {
+      position: relative;
+      top: -1px;
+      left: -11px;
+      color: dimgray;
+      /*display: none;*/
+    }
+
+    .insert_place_div, .remove_place_div {
+      border: 0;
+    }
+
+    .days-to-stay-badge {
+      background-color: white;
+      color: black;
+      margin-top: 4px;
+      margin-right: 14px;
+      display: none;
+    }
+
+    .arrival-departure-time-badge {
+      background-color: white;
+      color: black;
+      margin-top: 4px;
+      margin-right: -25px;
+      color: dimgray;
+    }
+
+    .time-pin-icon {
+      position: absolute;
+      right: 5px;
+      top: 2px;
+      color: dimgray;
+      cursor: pointer;
+    }
+
+    /*The div above google map (search bar etc.)*/
+    .col-sm-7 {
+      margin-bottom: 5px;
+    }
+
+    .label {
+      margin-right: 3px;
+      /*background-color: white;
+      color: dimgray;*/
+    }
+
+    /*.move-place {
+      position: absolute;
+      right: 3px;
+      top: 3px;
+      background-color: transparent;
+    }*/
+
+    .place-tag-div {
+      font-weight: 700;
+    }
+
+    .place-tag-editting {
+      background-color: #fcfcfc;
+    }
+
+    .list-group-item {
+      position: relative;
+      padding-right: 30px;
+      /*cursor: pointer;*/
+      height: 50px;
+      font-size: 1.2em;
+    }
+
+    .gear_icon {
+      margin-left: -11px;
+      margin-top: -2px;
+    }
+
+    .gear_icon, .insert_place_icon {
+      cursor: pointer;
+    }
+
+    .travel_mode_time_dist_text {
+      height: 49px;
+      margin: 0;
+      padding-top: 9px;
+      padding-left: 90px;
+    }
+
+    .place_tag_date_span {
+      float: left;
+      width: 100px;
+      margin-top: -41px;
+      margin-left: -35px;
+      font-size: 1.2em;
+      font-weight: 600;
+      color: darkolivegreen;
+    }
+
+    .travel_mode_span .label {
+      margin-bottom: 8px;
+      display: inline-block;
+    }
+
+    .travel_mode_span h4 {
+      margin: 2px;
+    }
+
+    .place-tag-setting-icon {
+      position: absolute;
+      right: 5px;
+      top: 5px;
+    }
+
+    .glyphicon {
+      font-size: 1.3em;
+      margin-left: 35px;
+      margin-right: 10px;
+      position: relative;
+      top: 7px;
+    }
+
+    .remove_place_div, .insert_place_div {
+      /*border-width: 0;*/
+      opacity: 0;
+    }
+
+    #search_place_form {
+      position: relative;
+      left: 50px;
+      bottom: 2px;
+    }
+
+    #clear_all_alert_div  {
+      position: fixed;
+      left: 45%;
+      top: 18%;
+      z-index: 5;
+      display: none;
+    }
+
+    #insert_mode_alert_div, #change_mode_alert_div{
+      position: fixed;
+      left: 45%;
+      top: 15px;
+      z-index: 3;
+      display: none;
+      background-color: darkkhaki;
+      color: white;
+    }
+
+    #listOfIcons {
+      position: relative;
+      left: 28px;
+      width: 40px;
+    }
+
+    #listOfPlaces {
+      width: 404px;
+    }
+
+    #temporary_place_tag_div .insert_mode_blank_tag {
+      width: 317px;
+    }
+
+    #place_setting_div {
+      position: fixed;
+      width: 150px;
+      font-size: 0.85em;
+      z-index: 3;
+      cursor: pointer;
+      display: none;
+    }
+
+    #place_setting_div .list-group .list-group-item {
+      height: 32px;
+      padding: 5px 10px;
+    }
+
+    #place_setting_div .list-group .list-group-item i {
+      margin-right: 8px;
+      color: darkgreen;
+    }
+
+    #trip_name {
+      width: 75%;
+      position: relative;
+      left: 20px;
+      margin-top: 8px;
+    }
+
+    #obtain_weather_button {
+      position: absolute;
+      left: 300px;
+      top: 7px;
+      display: none;
+    }
+
+    #trip_dist_display {
+      margin-left: 152px;
+    }
+  </style>
+</head>
+
+<body>
+
+{% include 'navbar.html' %}
+<div class="alert alert-success" id="messagewindow">
+	Some text goes here.
+</div>
+
+{% include 'note_modal.html' %}
+{% include 'edit_name_modal.html' %}
+
+<div class="container">
+
+<h1 style="margin-top:5px;">Start a new trip</h1>
+<br>
+
+<div class="alert alert-danger text-center" id="clear_all_alert_div">
+  <strong>Clear All Places?</strong>
+  <br><br>
+  <button class="btn btn-primary" onclick="clearAllPlaces()">Confirm</button>
+  <button class="btn btn-default" onclick="cancelClearAll()">Cancel</button>
+</div>
+
+<div class="alert alert-warning" id="insert_mode_alert_div">
+  <strong>Insert mode.</strong>
+</div>
+
+<div class="alert alert-warning" id="change_mode_alert_div">
+  <strong>Change mode.</strong>
+</div>
+
+<div class="" id="place_setting_div" data-index="0">
+  <ul class="list-group">
+    <li class="list-group-item remove_place_option">
+      <i class="fa fa-trash fa-lg" aria-hidden="true"></i>
+      <span>Remove</span>
+    </li>
+    <li class="list-group-item edit_name_option">
+      <i class="fa fa-pencil-square-o fa-lg" aria-hidden="true"></i>
+      <span style="margin-left:-5px;">Custom name</span>
+    </li>
+    <li class="list-group-item add_note_option">
+      <i class="fa fa-sticky-note-o fa-lg" aria-hidden="true"></i>
+      <span>Add note</span>
+    </li>
+    <!-- <li class="list-group-item change_place_option">
+      <i class="fa fa-map-marker fa-lg" style="margin-left:3px;margin-right:10px;" aria-hidden="true"></i>
+      <span>Change place</span>
+    </li> -->
+    <!-- <li class="list-group-item add_place_option">
+      <i class="fa fa-map-marker fa-lg" style="margin-left:3px;margin-right:10px;" aria-hidden="true"></i>
+      <span>Add place</span>
+    </li> -->
+    <li class="list-group-item set_arrival_time_option">
+      <i class="fa fa-clock-o fa-lg" aria-hidden="true"></i>
+      <span>Arrival time</span>
+    </li>
+    <div class="list-group-item" style="padding:4px;display:none;">
+      <input id="set_arrival_date_input" type="date" style="width:139px;border:0;">
+    </div>
+    <div class="list-group-item" style="padding:2px 21px;display:none;">
+      <input id="set_arrival_time_input" type="time" style="">
+    </div>
+    <li class="list-group-item set_departure_time_option">
+      <i class="fa fa-clock-o fa-lg" aria-hidden="true"></i>
+      <span>Departure time</span>
+    </li>
+    <div class="list-group-item" style="padding:4px;display:none;">
+      <input id="set_departure_date_input" type="date" style="width:139px;border:0;">
+    </div>
+    <div class="list-group-item" style="padding:2px 21px;display:none;">
+      <input id="set_departure_time_input" type="time" style="">
+    </div>
+    <!-- <li class="list-group-item change_travel_mode_option" style="border-top-width: 3px;">
+      <i class="fa fa-car" aria-hidden="true" style="font-size:1.1em;margin-left:22px;"></i>
+      <i class="fa fa-bicycle" aria-hidden="true" style="font-size:1.1em;margin-left:6px;"></i>
+      <i class="fa fa-blind" aria-hidden="true" style="font-size:1.1em;margin-left:7px;"></i>
+    </li> -->
+  </ul>
+</div>
+
+<div class="panel panel-default">
+  <div class="panel-body">
+
+    <form id="create_trip_form" class="form-inline">
+      <div class="">
+        <label class="sr-only" for="trip_name">TripName</label>
+        <input id="trip_name" type="text" class="form-control mb-2 mr-sm-2 mb-sm-0 input-lg" name="trip_title" placeholder="Name of this trip">
+      </div>
+      <hr>
+
+      <label class="sr-only" for="start_date_input">StartDate</label>
+      <div class="input-group mb-2 mr-sm-2 mb-sm-0 input-lg">
+        <div class="input-group-addon">Start from</div>
+        <input id="start_date_input" type="date" class="form-control">
+      </div>
+
+      <div class="input-group">
+        <div class="col-10">
+          <input class="form-control" type="time" value="12:00:00" id="start_time_input">
+        </div>
+      </div>
+
+      <label class="sr-only" for="group_size">NumberOfPeople</label>
+      <div class="input-group mb-2 mr-sm-2 mb-sm-0 input-lg">
+        <div class="input-group-addon">Group size</div>
+        <input id="group_size" type="number" min="1" class="form-control text-center days_to_stay_input" placeholder="1" style="width: 4em">
+      </div>
+
+      <label class="custom-control custom-checkbox">
+        <input type="checkbox" class="custom-control-input" id="lookingForPartner">
+        <span class="custom-control-indicator"></span>
+        <span class="custom-control-description"> Looking for partners </span>
+      </label>
+    </form>
+
+  </div>
+</div>
+
+<div class="panel panel-default">
+  <div class="panel-body">
+    <div class="row">
+      <div class="col-sm-7 col-xs-12">
+        <span id="trip_dist_display">0 miles</span>
+        <span id="trip_duration_display" style="margin-left: 7px;">0 days</span>
+      </div>
+      <div class="col-sm-5">
+        <div id="search_place_form" class="form-inline" role="search">
+          <div class="form-group" style="width:50%;">
+            <input id="search_content_input" type="text" class="form-control" style="width:100%;" placeholder="Search places">
+          </div>
+          <button class="btn btn-default" onclick="findLatLngFromAddress()">Add</button>
+          <button class="btn btn-warning" onclick="clearAllPlacesFromButton()">Clear All</button>
+        </div>
+          <!-- <button id="obtain_weather_button" type="button" class="btn btn-default pull-right" name="button">Obtain Weather Info</button> -->
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-sm-7 col-xs-12 ">
+        <div id="map" height="460px" width="100%"></div>
+      </div>
+
+      <div class="col-sm-4 place-list-container">
+          <div id="listOfPlaces" class="list-group">
+          </div>
+      </div>
+
+      <div class="col-sm-1">
+        <div id="listOfIcons" class="list-group">
+
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="panel panel-default">
+  <div class="panel-body">
+    <form>
+      <div class="form-group">
+        <label for="description">Description:</label>
+        <textarea class="form-control" maxlength="800" rows="5" id="description"></textarea>
+      </div>
+    </form>
+    <!-- <button class="btn btn-default" id="reviewTripButton" onclick="reviewTrip()" type="button" name="button">Save</button> -->
+  </div>
+</div>
+
+<div class="panel panel-default">
+  <div class="panel-body">
+    <button class="btn btn-default" id="reviewTripButton" onclick="reviewTrip()" type="button" name="button">Review</button>
+  </div>
+</div>
+
+<div class="panel panel-success">
+  <div class="panel-heading">
+    <h3 class="panel-title"> Save it! You can edit it later. </h3>
+  </div>
+  <div class="panel-body">
+    <button class="btn btn-success" id="saveTripButton" onclick="submitTrip()" type="button" name="button">Save</button>
+    <button class="btn btn-default" type="button" name="button">Share</button>
+  </div>
+</div>
+
+</div>
+
+<script type="text/javascript" src="https://code.jquery.com/jquery-2.1.4.js"></script>
+<script type="text/javascript" src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+<script type="text/javascript" src="{% static 'trips/js/moment.js' %}"></script>
+
+<script>
+  var addingPlaceAllowed = true;
+  var confirm = true;   // Handle whether or not trigger onbeforeunload.
+  var geocoder;
+
+  var map;
+  var places = [];
+  var markerIndex;
+  var markerLat;
+  var markerLng;
+  var messagewindow;
+  var tripDurationDays = 0;
+  var totalHoursOnTravel = 0;
+  var totalTravelTimeInSec = 0;
+  var totalDaysOnTravel = 0;
+  var leftHoursOnTravel = 0;
+  var totalTravelDistInMeters = 0;
+  var travelModeIconClass = {
+    "DRIVING": "fa fa-car",
+    "WALKING": "fa fa-blind",
+    "BICYCLING": "fa fa-bicycle",
+    "TRANSIT": "fa fa-bus"
+  }
+  // var monthNames = ["Jan.","Feb.","Mar.","Apr.","May","June","July","Aug.","Sep.","Oct.","Nov.","Dec."]
+
+  var indexToInsert = -1;
+  var indexToUpdate = -1;
+
+  var directionsService;
+  var directionsDisplay;
+
+  var iconURLPrefix = "http://chart.apis.google.com/chart?chst=d_map_pin_letter&chld=";
+  var markerBackgroundColor = "407F7D"  // Used in the api URL for "icon" argument
+  var markerNumberColor = "FFFFFF"      // Used in the api URL for "icon" argument
+
+  var infowindowContent;
+  var infowindowPrefix = '<div class="infowindow-content"><h4 class="infowindow-place-name">'
+  var infowindowMidContent = '</h4><hr><div class="infowindow-sub-div">'
+  var infowindowPostfix = '</div></div>';
+
+  function Place(marker) {
+          this.marker                     = marker;
+          this.infowindow                 = marker.infowindow;
+          this.lat                        = marker.getPosition().lat();
+          this.lng                        = marker.getPosition().lng();
+          this.latLng                     = {lat: marker.getPosition().lat(), lng: marker.getPosition().lng()};
+          this.name                       = "Unknown.";
+          this.customName                 = "";
+          this.timeZone                   = {
+                                              timeZoneId:"America/Los_Angeles",
+                                              timeZoneName:"Pacific Daylight Time",
+                                              dstOffset: 3600,
+                                              rawOffset: -28800
+                                            };
+          this.prevPlace                  = null;
+          this.nextPlace                  = null;
+          this.travelInfoToHere           = {
+                                              travelMode: "DRIVING",
+                                              travelTime: {
+                                                            text: "",
+                                                            seconds:0
+                                                          },
+                                              travelDist: {
+                                                            text: "",
+                                                            meters:0
+                                                          },
+                                              directionsDisplay: null
+                                            };
+          this.note                       = "";
+          this.timeArrival                = moment();
+          this.timeDeparture              = moment();
+          this.isPinned                   = false;
+          this.weatherArrival             = "";
+          this.weatherDeparture           = "";
+        }
+
+
+  Place.prototype.setPlaceName = function() {
+    var locality  = "";   // Incorporated city/town name.
+    var establishment = ""; // Something like national park.
+    var adminLvl2 = "";   // County name;
+    var adminLvl1 = "";   // State name.
+    var this_ = this;
+    var latLng = this_.latLng;
+
+    addingPlaceAllowed = false;
+    geocoder.geocode({'location': latLng}, function(results, status) {
+      if (status === 'OK') {
+        if (results[1]) {
+          // console.log(results)
+          for (var obj of results[1]['address_components']) {
+            switch (obj['types'][0]) {
+              case 'establishment':
+                establishment = obj['long_name'];
+                break;
+
+              case 'locality':
+                locality = obj['long_name'];
+                break;
+
+              case 'administrative_area_level_2':
+                adminLvl2 = obj['long_name'];
+                break;
+
+              case 'administrative_area_level_1':
+                adminLvl1 = obj['short_name'];
+            }
+          }
+          if (establishment != ""){
+            address = establishment;
+          } else if (locality != ""){
+            address = locality;
+          } else if (adminLvl2 != ""){
+            address = adminLvl2;
+          }
+          if (adminLvl1 != ""){
+            address += ", "+adminLvl1;
+          }
+
+          if (!(adminLvl1 && (establishment || locality || adminLvl2))) {
+          console.log(address)
+            address = "Unknown.";
+          }
+          this_.name = address;
+          this_.customName = address;
+          updateAllPlaceTags();
+        } else {
+          window.alert('No results found');
+        }
+
+
+        if (this_.prevPlace == null) {
+          addingPlaceAllowed = true;
+
+          // Update the arrival and departure time of the first place.
+          var startDateString = $("#start_date_input").val();   // yyyy-mm-dd;
+          var startTimeString = $("#start_time_input").val();   // Although the input has AM/PM, the returned value is in 24h format. 16:00;
+          this_.timeArrival = moment(startDateString + " " + startTimeString);
+          this_.timeDeparture = moment(startDateString + " " + startTimeString);
+          $("#place_tag_0").find(".arrival-departure-time-badge").text(this_.timeArrival.format("h:mmA")+
+                                                                        " - "+places[0].timeDeparture.format("h:mmA"));
+          $("#place_tag_"+0).find(".place_tag_date_span").text(this_.timeArrival.format("MMM D"));
+        }
+      } else {
+        window.alert('Geocoder failed due to: ' + status);
+      }
+
+      addingPlaceAllowed = true;
+    });
+  }
+
+  Place.prototype.setTravelInfo = function(autoFillTimeArrivalDeparture) {
+    var this_ = this;
+    if (this_ == null) {
+      consol.log("null.setTravelInfo(), not allowed!")
+      return;
+    }
+    if (!this_.prevPlace) {
+      console.log(this_)
+      this_.travelInfoToHere = { travelMode: "START",
+                                travelTime: { text: "",
+                                              seconds:0},
+                                travelDist: { text: "",
+                                              meters:0},
+                                directionsDisplay: null
+                              };
+    } else {
+      addingPlaceAllowed = false;
+      // Update the travel time and distance between two place tags.
+      var directionsService = new google.maps.DirectionsService();
+      var request = {
+        origin: this_.prevPlace.latLng,
+        destination: this_.latLng,
+        travelMode: this_.travelInfoToHere.travelMode
+      };
+      directionsService.route(request, function(response, status) {
+        if (status == 'OK') {
+          var directionsDisplay = new google.maps.DirectionsRenderer({
+                                                  suppressMarkers: true,
+                                                  suppressInfoWindows: true,
+                                                  preserveViewport: true,
+                                                  suppressBicyclingLayer: true
+                                                });
+          directionsDisplay.setMap(map);
+
+          // For Directions Leg, see: https://developers.google.com/maps/documentation/javascript/directions#Legs
+          var leg = response['routes'][0]['legs'][0];
+          if (leg != null) {
+            // console.log(this_);
+            this_.travelInfoToHere.travelTime.text         = leg['duration']['text'];
+            this_.travelInfoToHere.travelTime.seconds      = leg['duration']['value'];
+            this_.travelInfoToHere.travelDist.text         = leg['distance']['text'];
+            this_.travelInfoToHere.travelDist.meters       = leg['distance']['value'];
+
+            // if (this_.prevPlace != null && autoFillTimeArrivalDeparture == true) {
+            //   this_.timeArrival = moment(this_.prevPlace.timeDeparture).add(this_.travelInfoToHere.travelTime.seconds, "s");
+            //   this_.timeDeparture = moment(this_.timeArrival);
+            // }
+
+            autoSetTimeForPlacesAfter(this_);
+          }
+          directionsDisplay.setDirections(response);
+
+          var strokeColor;
+          if (this_.travelInfoToHere.travelMode == "BICYCLING"){
+            strokeColor = 'orange';
+          } else if (this_.travelInfoToHere.travelMode == "WALKING") {
+            strokeColor = 'red';
+          } else if (this_.travelInfoToHere.travelMode == "TRANSIT") {
+            strokeColor = 'green';
+          }
+          else{
+            strokeColor = '#0088FF';
+          }
+          directionsDisplay.setOptions({
+            polylineOptions: {
+              strokeColor: strokeColor,
+              strokeWeight: 6,
+              strokeOpacity: 0.6
+            }
+          });
+
+          if (this_.travelInfoToHere.directionsDisplay != null) {
+            this_.travelInfoToHere.directionsDisplay.setMap(null);
+            this_.travelInfoToHere.directionsDisplay = null;
+          }
+          this_.travelInfoToHere.directionsDisplay = directionsDisplay;
+          // this_.travelInfoToHere.directionsResponse = response;
+
+          // if (indexToInsert >= 0){
+          //   indexToInsert = -1;
+          //   $("#insert_mode_alert_div").fadeOut();
+          //   this_.nextPlace.setTravelInfo();
+          // }
+          // if (indexToUpdate >= 0){
+          //   indexToUpdate = -1;
+          //   $("#change_mode_alert_div").fadeOut();
+          //   this_.nextPlace.setTravelInfo();
+          // }
+          indexToInsert = -1;
+          $("#insert_mode_alert_div").fadeOut();
+          indexToUpdate = -1;
+          $("#change_mode_alert_div").fadeOut();
+          updateAllPlaceTags();
+          updateTotalTimeAndDistText();
+        } else  {
+          if (status == 'ZERO_RESULTS') {
+            alert("Cannot find path to this place with the current travel mode! Try again later, or select a different travel mode");
+            for (var i=0; i<places.length; i++){
+              if (places[i] == this_) {
+                $("#travel_mode_span_"+i).find(".travel-mode-icon").each(function(){
+                  if ($(this).hasClass(travelModeIconClass[places[i].travelInfoToHere.travelMode])){
+                    $(this).css("color","red").attr("title", "Cannot reach next place with this travel mode.")
+                  }
+                });
+              }
+            }
+            // If the newly added marker cannot be connected to the previous one, do we remove it, or leave it on the map?
+          }
+        }
+        addingPlaceAllowed = true;
+      });
+    }
+  }
+
+  // Place.prototype.setDirectionsDisplay = function() {
+  //
+  // }
+
+  // Place.prototype.setTravelInfoTagContent = function() {
+  //
+  // }
+
+  Place.prototype.setPlaceTagContent = function() {
+
+  }
+
+  function autoSetTimeForPlacesAfter(place){
+    while (place != null) {
+      if (place.prevPlace != null && !place.isPinned) {
+        place.timeArrival = moment.max(moment(place.prevPlace.timeDeparture).add(place.travelInfoToHere.travelTime.seconds, "s"),moment(place.timeArrival));
+        place.timeDeparture = moment.max(moment(place.timeArrival), moment(place.timeDeparture))
+      }
+      place = place.nextPlace;
+    }
+  }
+
+  // Add a button to the Google map that generate the route based on users' pinpoints.
+  function AdjustCameraControl(controlDiv, map) {
+
+    // Set CSS for the control border.
+    var controlUI = document.createElement('div');
+    controlUI.style.backgroundColor = '#f9f6ed';
+    controlUI.style.border = '2px solid #f9f6ed';
+    controlUI.style.borderRadius = '3px';
+    controlUI.style.boxShadow = '0 2px 6px rgba(0,0,0,.3)';
+    controlUI.style.cursor = 'pointer';
+    controlUI.style.marginBottom = '22px';
+    controlUI.style.textAlign = 'center';
+    controlUI.title = 'Click to generate the route';
+    controlDiv.appendChild(controlUI);
+
+    // Set CSS for the control interior.
+    var controlText = document.createElement('div');
+    controlText.style.color = 'rgb(64,127,125)';
+    controlText.style.fontFamily = 'Roboto,Arial,sans-serif';
+    controlText.style.fontSize = '16px';
+    controlText.style.lineHeight = '38px';
+    controlText.style.paddingLeft = '5px';
+    controlText.style.paddingRight = '5px';
+    controlText.innerHTML = 'Adjust Camera';
+    controlUI.appendChild(controlText);
+
+    // Setup the click event listeners.
+    controlUI.addEventListener('click', adjustMapCamera);
+  }
+
+
+  function initMap() {
+    addingPlaceAllowed = true;
+    var directionsService = new google.maps.DirectionsService;
+    var california = {lat: 37.4419, lng: -122.1419};
+
+    map = new google.maps.Map(document.getElementById('map'), {
+      center: california,
+      zoom: 7
+    });
+
+    // Create the DIV to hold the control and call the CenterControl()
+    // constructor passing in this DIV.
+    var adjustCameraDiv = document.createElement('div');
+    var adjustCamera = new AdjustCameraControl(adjustCameraDiv, map);
+    adjustCameraDiv.index = 1;
+    map.controls[google.maps.ControlPosition.TOP_RIGHT].push(adjustCameraDiv)
+
+    geocoder = new google.maps.Geocoder;
+
+    google.maps.event.addListener(map, 'click', function(event) {
+      var latLng = event.latLng;
+      if (addingPlaceAllowed) {
+        addMarkerFromLatLng(latLng);
+      } else {
+        // Notify the user adding places too fast, and try again later.
+      }
+    });
+
+    {% if update %}
+      loadOldData();
+    {% endif %}
+  }
+
+  function addMarkerFromLatLng(latLng) {
+    addingPlaceAllowed = false
+    var marker = new google.maps.Marker({
+      position: latLng,
+      map: map,
+      icon: iconURLPrefix + (places.length + 1) + "|" + markerBackgroundColor + "|" + markerNumberColor
+    });
+
+    var infowindow = new google.maps.InfoWindow({
+        maxWidth: 270
+    });
+
+    marker.infowindow = infowindow;
+
+    infowindowContent = infowindowPrefix + infowindowMidContent + infowindowPostfix;
+
+    marker.infowindow.setContent(infowindowContent);
+
+    google.maps.event.addListener(marker, 'click', function() {
+      closeAllInfowindow();
+      this.infowindow.open(map, this);
+    });
+
+    var newPlace = new Place(marker);
+
+    if (indexToUpdate >= 0) {
+      if(places[indexToUpdate].travelInfoToHere.directionsDisplay != null) {
+        places[indexToUpdate].travelInfoToHere.directionsDisplay.setMap(null);
+      }
+      places[indexToUpdate].marker.setMap(null);
+      places[indexToUpdate].infowindow.close();
+      places[indexToUpdate] = newPlace;
+    }
+
+    newPlace.timeArrival = moment();
+    newPlace.timeDeparture = moment();
+    newPlace.setPlaceName();
+    getTimeZone(newPlace);
+
+    var autoFillTimeArrivalDeparture = true;
+
+    if (indexToInsert == -1 && indexToUpdate == -1) {
+      // indexToInsert == -1, means it's not in INSERT mode. The newly added place is to be pushed into places[].
+      places.push(newPlace);
+      if (places.length == 1) {
+        updateStartPoint();
+        updateAllPlaceTags();
+      } else {
+        newPlace.prevPlace = places[places.length-2];
+        places[places.length-2].nextPlace = newPlace;
+      }
+    } else if (indexToInsert == -1) {
+      // UPDATE MODE
+      autoFillTimeArrivalDeparture = false;
+      if (indexToUpdate > 0){
+        places[indexToUpdate].prevPlace = null;
+        places[indexToUpdate-1].nextPlace = newPlace;
+        newPlace.prevPlace = places[indexToUpdate-1]
+      }
+      if (indexToUpdate < places.length-1){
+        places[indexToUpdate].nextPlace = null;
+        places[indexToUpdate+1].prevPlace = newPlace;
+        newPlace.nextPlace = places[indexToUpdate+1];
+      }
+      // places[indexToUpdate] = newPlace;
+    } else if (indexToUpdate == -1) {
+      // INSERT MODE
+      newPlace.prevPlace = places[indexToInsert-1];
+      places[indexToInsert-1].nextPlace = newPlace;
+
+      places[indexToInsert].prevPlace = newPlace;
+      newPlace.nextPlace = places[indexToInsert];
+
+      // Insert to places[]
+      places.splice(indexToInsert, 0, newPlace);
+    }
+
+    newPlace.setTravelInfo(autoFillTimeArrivalDeparture);
+    if (newPlace.nextPlace != null) {
+      newPlace.nextPlace.setTravelInfo();
+    }
+
+  }
+
+  // Return lat, lng from the client's search content.
+  function findLatLngFromAddress(addressToSearch) {
+    var urlPrefix = "https://maps.googleapis.com/maps/api/geocode/json?address=";
+    var APIKEY = "AIzaSyAoX1pdP9-vueaY2JVmIxViYdUdY1DbHJM";
+    var searchContent = (addressToSearch===undefined)? $("#search_content_input").val():addressToSearch;
+    var googleGeoCodingUrl = urlPrefix + searchContent + "&key=" + APIKEY;
+
+    addingPlaceAllowed = false;
+    $.ajax({
+      url: googleGeoCodingUrl,
+      method: "GET",
+      success: function(data) {
+        // console.log(data);
+        if (data['status'] == 'OK') {
+          // find latLng
+          var latVal = data['results'][0]['geometry']['location']['lat'];
+          var lngVal = data['results'][0]['geometry']['location']['lng'];
+          var latLng =  {
+                          lat: data['results'][0]['geometry']['location']['lat'],
+                          lng: data['results'][0]['geometry']['location']['lng']
+                        };
+          // add marker and place
+          if (latLng != null){
+            addMarkerFromLatLng(latLng)
+            //  center map
+            map.setCenter(latLng);
+          } else {
+            // error message
+          }
+        } else {
+          // error message
+        }
+        $("#search_content_input").val("");
+        adjustMapCamera();
+        addingPlaceAllowed = true;
+      },
+      error: function(data) {
+        // console.log('error');
+        // console.log(data);
+        addingPlaceAllowed = true;
+      }
+    })
+  }
+
+  function adjustMapCamera(){
+    var bounds = new google.maps.LatLngBounds();
+    if (places.length == 0) {
+      var southWestLatLng = {lat: 35.4632463315504, lng: -110.298828125}
+      var northEastLatLng = {lat: 43.57946149373232, lng: -85.576171875}
+      bounds.extend(southWestLatLng);
+      bounds.extend(northEastLatLng);
+    } else {
+      for (var place of places) {
+       bounds.extend(place.marker.getPosition());
+      }
+    }
+    map.fitBounds(bounds);
+  }
+
+  function clearAllPlacesFromButton() {
+    if (places.length > 0) {
+      $("#clear_all_alert_div").show();
+    }
+  }
+
+  function cancelClearAll() {
+    $("#clear_all_alert_div").hide();
+  }
+
+  function clearAllPlaces() {
+    $("#clear_all_alert_div").hide();
+    for (var place of places) {
+      place.marker.setMap(null);
+      if (place.prevPlace != null){
+        place.travelInfoToHere.directionsDisplay.setMap(null);
+      }
+      place.infowindow.close();
+    }
+    places = [];
+
+    $("#listOfPlaces").html("");
+    $("#listOfIcons").html("");
+    $("#obtain_weather_button").hide();
+    tripDurationDays = 0;
+    totalTravelTimeInSec = 0;
+    updateTotalTimeAndDistText();
+    adjustMapCamera();
+  }
+
+  function updateStartPoint() {
+    places[0].prevPlace                             = null;
+    places[0].travelInfoToHere.travelMode           = 'START';
+    places[0].travelInfoToHere.travelTime.text      = "";
+    places[0].travelInfoToHere.travelTime.seconds   = 0;
+    places[0].travelInfoToHere.travelDist.text      = "";
+    places[0].travelInfoToHere.travelDist.meters    = 0;
+    places[0].infowindow.setContent(
+                          infowindowPrefix + places[0].customName +
+                          infowindowMidContent + places[0].note +
+                          infowindowPostfix
+                          )
+
+    if (places[0].travelInfoToHere.directionsDisplay != null){
+      places[0].travelInfoToHere.directionsDisplay.setMap(null);
+      places[0].travelInfoToHere.directionsDisplay    = null;
+    }
+
+    $("#start_date_input").val(places[0].timeArrival.format("YYYY-MM-DD"));
+    $("#start_time_input").val(places[0].timeArrival.format("HH:mm"));
+  }
+
+  function attachPlaceTag(place, index) {
+    // Add one place tag to the right div.
+    var container = $("#listOfPlaces");
+    var iconContainer = $("#listOfIcons");
+    var travelMode = place.travelInfoToHere.travelMode;
+
+    if (index > 0) {
+      container.append(
+                        '<span class="travel_mode_span" id="travel_mode_span_' + index +
+                        '" data-index="' + index + '">' +
+                          '<p class="travel_mode_time_dist_text">' +
+                            '<i class="glyphicon glyphicon-arrow-down" aria-hidden="true" style="font-size:1.7em;"></i>' +
+                            '<span class="travel-info-text">' +
+                            // '<i class="'+travelModeIconClass[travelMode]+' fa-lg travel-mode-icon"></i> ' +
+                              '<i class="fa fa-car fa-lg travel-mode-icon" data-mode="DRIVING" title="driving"></i> ' +
+                              '<i class="fa fa-bus fa-lg travel-mode-icon" data-mode="TRANSIT" title="transit"></i> ' +
+                              '<i class="fa fa-bicycle fa-lg travel-mode-icon" data-mode="BICYCLING" title="bicycling"></i> ' +
+                              '<i class="fa fa-blind fa-lg travel-mode-icon" data-mode="WALKING" title="walk"></i> ' +
+                              '<span class="travel-time-text">Calculating</span>' +
+                              '<span class="vertical-line"> | </span>' +
+                              '<span class="travel-dist-text">Calculating</span>' +
+                            '</span>' +
+                          '</p>' +
+                        '</span>'
+                      );
+
+      $("#travel_mode_span_"+index).find(".travel-info-text").children(".travel-mode-icon").each(function(){
+        if (!$(this).hasClass(travelModeIconClass[travelMode])) {
+          $(this).hide();
+        }
+      })
+
+      iconContainer.append( '<div class="list-group-item insert_place_div" id="icon_list_travel_mode_' + index +
+                            '" data-index="' + index + '">' +
+                              '<i class="fa fa-plus fa-2x insert_place_icon" aria-hidden="true"></i>' +
+                              // '<i class="fa fa-sticky-note-o fa-2x note_icon" aria-hidden="true"></i>' +
+                            '</div>'
+                          )
+      // updatePlaceTagDateSpan(index);
+    }
+
+    var address          = place.customName,
+        addressFormatted = place.customName;
+
+    if (address.length > 30) {
+      var addressArray = address.split(",")
+      $.each(addressArray, function(key, value) {
+        if (value.length > 20) {
+          addressArray[key] = value.slice(0,20) + "...";
+        }
+      })
+      addressFormatted = addressArray.join();
+    }
+
+    addressFormatted = addressFormatted || "Retrieving Address...";
+
+    container.append('<div class="list-group-item place-tag-div" ' +
+                      'id="place_tag_' + index + '" ' +
+                      'data-index=' + index + '>' +
+                        '<span class="place_tag_date_span"></span>' +
+                        '<span class="badge arrival-departure-time-badge">Calculating</span>' +
+                        '<i class="fa fa-thumb-tack time-pin-icon" title="Fix the arrival and departure time."></i>' +
+                        '<input type="text" class="custom-name-display" value="'+addressFormatted+'"></input>' +
+                        // '<span class="custom-name">' + addressFormatted + '</span>' +
+                      '</div>'
+                    );
+
+    iconContainer.append( '<div class="list-group-item remove_place_div" id="icon_list_place_' + index +
+                          '" data-index="' + index + '">' +
+                            '<i class="fa fa-cog fa-2x gear_icon" aria-hidden="true"></i>' +
+                            // '<i class="fa fa-trash fa-2x remove_place_icon" aria-hidden="true"></i>' +
+                            // '<i class="fa fa-sticky-note-o fa-2x note_icon" aria-hidden="true"></i>' +
+                          '</div>'
+                        )
+  }
+
+  function updateAllPlaceTags(){
+    $("#listOfPlaces").html("");
+    $("#listOfIcons").html("");
+    // console.log("updateAllPlaceTags called.")
+    for (var i=0; i < places.length; i++){
+      var place = places[i];
+      attachPlaceTag(place, i);
+      if (place.travelInfoToHere.travelTime.seconds > 0){
+        $("#travel_mode_span_"+i).find(".travel-time-text").text(place.travelInfoToHere.travelTime.text.replace("hours", "hrs").replace("hour", "hr"));
+      } else {
+        $("#travel_mode_span_"+i).find(".travel-time-text").text("Unavailable");
+      }
+      if (place.travelInfoToHere.travelDist.meters > 0){
+        $("#travel_mode_span_"+i).find(".travel-dist-text").text(place.travelInfoToHere.travelDist.text);
+      } else {
+        $("#travel_mode_span_"+i).find(".travel-dist-text").text("Unavailable");
+      }
+
+      place.marker.setIcon(iconURLPrefix + (i+1).toString() + "|" + markerBackgroundColor + "|" + markerNumberColor)
+
+      var infowindowContent = infowindowPrefix + place.customName +
+                              infowindowMidContent + place.note +
+                              infowindowPostfix
+      place.infowindow.setContent(infowindowContent);
+
+      var dateDiff = moment(place.timeDeparture).startOf('day').diff(moment(place.timeArrival).startOf('day'), 'days')
+      var dateDiffString = "";
+      if (dateDiff != 0) {
+        if (dateDiff == 1 || dateDiff == -1){
+          dateDiffString = "(" + (dateDiff>0?"+":"") + dateDiff +" day)"
+          console.log(dateDiffString)
+        } else {
+          dateDiffString = "(" + dateDiff +" days)"
+        }
+      }
+      $("#place_tag_"+i).find(".arrival-departure-time-badge").text(place.timeArrival.format("h:mmA")+
+                                                                    " - "+place.timeDeparture.format("h:mmA")+
+                                                                    dateDiffString
+                                                                  );
+      if (place.isPinned) {
+        $("#place_tag_"+i).find(".arrival-departure-time-badge").css("color", "darkblue")
+                                    .attr("title", "The arrival and departure time are fixed and won't be autoset if there is a time conflict.");
+        $("#place_tag_"+i).find(".time-pin-icon").css("color","darkblue");
+      }
+
+      if (i == curIndexEditting){
+        $("#place_tag_"+i).addClass("place-tag-editting");
+      }
+
+      if (i == 0) {
+        // set the TRIP start time to be the arrival time of the first place.
+        var firstDate = places[i].timeArrival.format("YYYY-MM-DD");
+        var firstTime = places[i].timeArrival.format("HH:mm");
+        $("#start_date_input").val(firstDate);
+        $("#start_time_input").val(firstTime);
+      }
+
+      updatePlaceTagDateSpan(i);
+      // checkIfTimeExceeding(i);
+    }
+  }
+
+  // function checkIfTimeExceeding(index){
+  //   if (index > 0) {
+  //     if (moment(places[index-1].timeDeparture).add(places[index].travelInfoToHere.travelTime.seconds, 's')
+  //                                             .isAfter(moment(places[index].timeArrival).add(1,'h'))){
+  //       $("#travel_mode_span_"+index).find(".travel-time-text").addClass("time-exceed-warning").attr("title","Cannot reach next place on time.");
+  //     } else {
+  //       $("#travel_mode_span_"+index).find(".travel-time-text").removeClass("time-exceed-warning").attr("title","");
+  //     }
+  //
+  //     var place = places[index]
+  //     if(place.timeArrival.isAfter(place.timeDeparture)) {
+  //       $("#place_tag_"+index).find(".arrival-departure-time-badge").css("color","darkred");
+  //     } else {
+  //       $("#place_tag_"+index).find(".arrival-departure-time-badge").css("color","dimgray");
+  //     }
+  //   }
+  // }
+
+  function updatePlaceTagDateSpan(i){
+    if (i == 0 || places[i].timeArrival.format("MMM D") != places[i-1].timeArrival.format("MMM D")) {
+      $("#place_tag_"+i).find(".place_tag_date_span").text(places[i].timeArrival.format("MMM D"));
+    } else {
+      $("#place_tag_"+i).find(".place_tag_date_span").text("");
+    }
+  }
+
+  function calcTotalTravelTimeAndDist(){
+    totalTravelTimeInSec = 0;
+    totalTravelDistInMeters = 0;
+    for (var place of places) {
+      totalTravelTimeInSec += place.travelInfoToHere.travelTime.seconds;
+      totalTravelDistInMeters += place.travelInfoToHere.travelDist.meters;
+    }
+  }
+
+  function updateTotalTimeAndDistText() {
+    calcTotalTravelTimeAndDist();
+    totalHoursOnTravel = Math.round(totalTravelTimeInSec / 3600);
+    leftHoursOnTravel = totalHoursOnTravel % 24;
+    totalDaysOnTravel = Math.floor(totalHoursOnTravel / 24);
+    tripDurationDays = totalDaysOnTravel + (leftHoursOnTravel >= 12);
+
+    $("#trip_dist_display").text(Math.floor(totalTravelDistInMeters / 1609.34) + " miles");
+    $("#trip_duration_display").text(tripDurationDays + " days");
+  }
+
+  function updateFromArrivalToDepartureText(index){
+    // Set the time text on the place tags
+    var timeArrival = places[index].timeArrival.format("h:mmA");
+    var timeDeparture = places[index].timeDeparture.format("h:mmA");
+    var extraDays = places[index].timeDeparture.diff(places[index].timeArrival, 'days');
+    var extraDaysString = "";
+    if (extraDays == 1) {
+      extraDaysString = "(+1 day)";
+    } else if (extraDays > 1) {
+      extraDaysString = "(+" + extraDays +" days)";
+    }
+    // console.log(timeArrival+timeDeparture)
+    $("#place_tag_"+index).find(".arrival-departure-time-badge").text(timeArrival+" - "+timeDeparture+extraDaysString);
+
+  }
+
+  function updateArrivalDepartureTime(place, index, auto_fill, autosetDeparture, setDeparture, date, time) {
+    if (setDeparture == true) {
+
+    } else {
+      // Else, set timeArrival.
+      if (index == 0){
+        var startDateString = $("#start_date_input").val();   // yyyy-mm-dd;
+        var startTimeString = $("#start_time_input").val();   // Although the input has AM/PM, the returned value is in 24h format. 16:00;
+        place.timeArrival = moment(startDateString + " " + startTimeString);
+        // console.log("The first place, date is ")
+        // console.log(place.timeArrival)
+      } else {
+        if (auto_fill) {
+          place.timeArrival = moment(places[index-1].timeDeparture).add(place.travelInfoToHere.travelTime.seconds, 's')
+                                                                  //  .utcOffset(place.timeZone.rawOffset/60); // rawOffset returned by google is in seconds, Moment JS requires minutes instead.
+
+        } else {
+
+        }
+      }
+      if (autosetDeparture == true || place.timeArrival.isAfter(place.timeDeparture)){
+        // Autoset the departure time, if setDeparture and setArrival are both false.
+        place.timeDeparture = moment(place.timeArrival);
+      }
+    }
+
+    updateFromArrivalToDepartureText(index);
+    // If the place is the first, or place.timeArrival is one or more days after the previous arrival date, display the date.
+    updatePlaceTagDateSpan(index);
+  }
+
+  function getTimeZone(place) {
+    var lat = place.lat, lng = place.lng;
+    var googleTimeZoneAPIUrlPrefix = "https://maps.googleapis.com/maps/api/timezone/json?location="
+    var timestamp = place.timeArrival.format('X')   // Unix timestamp format of the arrival time.
+
+    $.ajax({
+      url: googleTimeZoneAPIUrlPrefix+lat+","+lng+"&timestamp="+timestamp+"&key=AIzaSyC5Ud8oMld9b4sSMZIgRWjClQQKCmij1oI",
+      method: "GET",
+      success: function(data) {
+        if (data['status']=='OK'){
+          place.timeZone.timeZoneId   = data["timeZoneId"];
+          place.timeZone.timeZoneName = data["timeZoneName"];
+          place.timeZone.dstOffset    = data["dstOffset"];
+          place.timeZone.rawOffset    = data["rawOffset"];
+        }
+      },
+      error: function(data) {
+        console.log('error');
+        console.log(data);
+      }
+    })
+  }
+
+
+
+
+  ///////////////////////////////////////////////////////////////
+  //  Functions for place_setting_div elements.                //
+  ///////////////////////////////////////////////////////////////
+  var curIndexEditting = -1;
+
+  $(document.body).on("click", ".gear_icon", function(e){
+    e.preventDefault();
+    e.stopPropagation();
+    var x = e.clientX, y = e.clientY;
+    var index = $(this).parent().attr("data-index");
+
+    for (var i=0; i<places.length; i++){
+      $("#place_tag_"+i).removeClass("place-tag-editting");
+    }
+
+    if (!$("#place_setting_div").is(':visible')){
+      $("#place_tag_"+index).addClass("place-tag-editting");
+      curIndexEditting = index;
+      closeAllInfowindow();
+      places[index].infowindow.open(map,places[index].marker);
+    } else {
+      $("#set_arrival_date_input, #set_arrival_time_input").parent().hide();
+      $("#set_departure_date_input, #set_departure_time_input").parent().hide();
+      clearCurIndexEditting();
+    }
+
+    $("#place_setting_div").toggle().attr("data-index", index).css("position","fixed").css("top",(y - 80) + 'px').css("left",(x + 20) + 'px');
+
+    if (index == 0){
+      $("#place_setting_div").find(".change_travel_mode_option").css("display", "none");
+      $("#place_setting_div").find(".add_place_option").css("display", "none");
+    } else {
+      $("#place_setting_div").find(".change_travel_mode_option").css("display", "block");
+      $("#place_setting_div").find(".add_place_option").css("display", "block");
+    }
+
+    if (places[index].note != "") {
+      $("#place_setting_div").find(".add_note_option").html("<i class='fa fa-sticky-note fa-lg'></i><span>Edit note</span>");
+    } else {
+      $("#place_setting_div").find(".add_note_option").html("<i class='fa fa-sticky-note-o fa-lg'></i><span>Add note</span>");
+    }
+  })
+
+  function clearCurIndexEditting(){
+    if (curIndexEditting >= 0) {
+      for (var i=0; i<places.length; i++){
+        $("#place_tag_"+i).removeClass("place-tag-editting");
+        $("#icon_list_place_"+i).css("opacity", 0);
+      }
+      curIndexEditting = -1;
+      closeAllInfowindow();
+    }
+  }
+
+  $(document).on("click", "body", function(e){
+    if (curIndexEditting >= 0){
+      saveArrivalDepartureTimeFromInput(curIndexEditting, true);
+      saveArrivalDepartureTimeFromInput(curIndexEditting, false);
+    }
+    clearCurIndexEditting();
+    $("#set_arrival_date_input, #set_departure_date_input, #set_arrival_time_input, #set_departure_time_input").parent().hide();
+    $("#place_setting_div").hide();
+  })
+
+  $(document.body).on("click", "#place_setting_div", function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+  })
+
+  // 1. Remove place.
+  $(document.body).on("click", ".remove_place_option", function(e){
+    e.preventDefault();
+    e.stopPropagation();
+    $("#place_setting_div").toggle();
+    clearCurIndexEditting();
+    $("#set_arrival_date_input, #set_arrival_time_input, #set_departure_date_input, #set_departure_time_input").parent().hide();
+
+    var index = parseInt($("#place_setting_div").attr("data-index"));
+    removePlace(index);
+  })
+
+  // 2. Custom name.
+  var editIndex;
+  $(document.body).on("click", ".edit_name_option", function(e){
+    e.preventDefault();
+    e.stopPropagation();
+    $("#place_setting_div").toggle();
+    clearCurIndexEditting();
+    $("#set_arrival_date_input, #set_arrival_time_input, #set_departure_date_input, #set_departure_time_input").parent().hide();
+
+    editIndex = parseInt($("#place_setting_div").attr("data-index"));
+    var originalName = places[editIndex].customName;
+
+    $("#editNameModal").modal({});
+    $("#editNameModal input").val(originalName);
+    // $("#editNameModal textarea").after("<input type='hidden' value='" + index + "' name='index' />");
+    $("#editNameModal").on("shown.bs.modal", function() {
+      $('#editNameModal input').focus()
+    });
+  })
+
+  $("#editNameModal input").keypress(function (e) {
+    var key = e.which;
+    if (key == 13) {
+      $("#edit_name_save_button").click();
+    }
+  })
+
+  function saveEditName(){
+    // console.log(editIndex)
+    var place = places[editIndex];
+    place.customName = $('#editNameModal input').val();
+    place.infowindow.setContent(infowindowPrefix + place.customName +
+                                infowindowMidContent + place.note +
+                                infowindowPostfix)
+    updateAllPlaceTags();
+    // $("#place_tag_"+editIndex).find(".custom_name").text(place.customName);
+  }
+
+  // 3. Add note.
+  var noteIndex;
+  $(document.body).on("click", ".add_note_option", function(e){
+    e.preventDefault();
+    e.stopPropagation();
+    $("#place_setting_div").toggle();
+    clearCurIndexEditting();
+    $("#set_arrival_date_input, #set_arrival_time_input, #set_departure_date_input, #set_departure_time_input").parent().hide();
+    var modalContent = "";
+
+    noteIndex = parseInt($("#place_setting_div").attr("data-index"));
+    modalContent = places[noteIndex].note;
+
+    $("#noteModal").modal({});
+    $("#noteModal textarea").val(modalContent);
+    // $("#noteModal .modal-body").find("input[type='hidden']").replaceWith("<input type='hidden' value='" + noteIndex + "' name='noteIndex' />");
+    $("#noteModal").on("shown.bs.modal", function() {
+      $('#noteModal textarea').focus()
+    });
+  })
+  function saveNote() {
+    var place = places[noteIndex];
+    place.note = $('#noteModal textarea').val();
+    place.infowindow.setContent(infowindowPrefix + place.customName +
+                                infowindowMidContent + place.note +
+                                infowindowPostfix)
+  }
+
+  // 4. Add place.
+  $(document.body).on("click", ".add_place_option", function(e){
+    e.preventDefault();
+    e.stopPropagation();
+    $("#place_setting_div").toggle();
+    clearCurIndexEditting();
+    closeAllInfowindow();
+    $("#set_arrival_date_input, #set_arrival_time_input, #set_departure_date_input, #set_departure_time_input").parent().hide();
+    indexToInsert = parseInt($("#place_setting_div").attr("data-index"));
+    var placeName = places[indexToInsert].customName;
+    $("#insert_mode_alert_div").html("<strong>Insert Mode:</strong> Add a stop before <strong>"+placeName+"</strong>." +
+                                      "  <span style='cursor:pointer;color:lightcyan;' onclick='cancelInsertMode()'>"+
+                                      "<strong>Cancel</strong></span>.").fadeIn();
+  })
+
+  $(document.body).on("click", ".insert_place_icon", function(e){
+    e.preventDefault();
+    e.stopPropagation();
+    if (indexToInsert >= 0){
+      return;
+    }
+    clearCurIndexEditting();
+    closeAllInfowindow();
+    $("#place_setting_div").hide();
+    $("#set_arrival_date_input, #set_arrival_time_input, #set_departure_date_input, #set_departure_time_input").parent().hide();
+    indexToInsert = parseInt($(this).parent().attr("data-index"));
+    var placeName = places[indexToInsert].customName;
+    $("#insert_mode_alert_div").html("<strong>Insert Mode:</strong> Add a stop before <strong>"+placeName+"</strong>." +
+                                      "  <span style='cursor:pointer;color:lightcyan;' onclick='cancelInsertMode()'>"+
+                                      "<strong>Cancel</strong></span>.").fadeIn();
+
+    // Display a blank place tag.
+    $("#travel_mode_span_"+indexToInsert).before(
+                                              '<span class="travel_mode_span" id="temporary_travel_mode_span">' +
+                                                '<p class="travel_mode_time_dist_text">' +
+                                                  '<i class="glyphicon glyphicon-arrow-down" aria-hidden="true" style="font-size:1.7em;"></i>' +
+                                                  '<span class="travel-info-text">' +
+                                                  '</span>' +
+                                                '</p>' +
+                                              '</span>' +
+                                              '<div class="list-group-item" id="temporary_place_tag_div">' +
+                                                '<input type="text" class="custom-name-display insert_mode_blank_tag" ' +
+                                                'placeholder="Type address, or place a marker on the map."></input>' +
+                                              '</div>'
+                                            )
+    $(this).parent().before(
+                          '<div class="list-group-item insert_place_div icon_list_travel_mode_blank">' +
+                            '&nbsp</div>' +
+                          '<i class="fa fa-times list-group-item insert_place_div icon_list_travel_mode_blank" ' +
+                          'style="cursor:pointer; opacity:1; color:darkred; font-size:2.5em; top:-5px;" onclick="cancelInsertMode()"></i>'
+                            // '<strong>Cancel</strong></div>'
+                        )
+    $("#temporary_place_tag_div, #temporary_travel_mode_span, .icon_list_travel_mode_blank").hide().slideDown('slow');
+    $("#temporary_place_tag_div input").focus()
+  })
+
+  function cancelInsertMode(){
+    indexToInsert = -1;
+    $("#insert_mode_alert_div").fadeOut();
+    $("#temporary_place_tag_div, #temporary_travel_mode_span, .icon_list_travel_mode_blank").remove();
+  }
+
+  // 5. Change place.
+  $(document.body).on("click", ".change_place_option", function(e){
+    e.preventDefault();
+    e.stopPropagation();
+    $("#place_setting_div").toggle();
+    $("#set_arrival_date_input, #set_arrival_time_input, #set_departure_date_input, #set_departure_time_input").parent().hide();
+    indexToUpdate = parseInt($("#place_setting_div").attr("data-index"));
+    var placeName = places[indexToUpdate].customName;
+    $("#change_mode_alert_div").html("<strong>Change Mode:</strong> Change the destination <strong>"+placeName+"</strong>." +
+                                      "  <span style='cursor:pointer;color:lightcyan;' onclick='cancelChangeMode()'>"+
+                                      "<strong>Cancel</strong></span>.").fadeIn();
+  })
+  function cancelChangeMode(){
+    indexToUpdate = -1;
+    $("#change_mode_alert_div").fadeOut();
+  }
+
+  // 6. Set arrival time.
+  $(document.body).on("click", ".set_arrival_time_option", function(e){
+    e.preventDefault();
+    e.stopPropagation();
+    var index = parseInt($("#place_setting_div").attr("data-index"));
+    if ($("#set_arrival_date_input").parent().is(':visible')) {
+      saveArrivalDepartureTimeFromInput(index, true);
+    } else {
+      var curDate = places[index].timeArrival.format("YYYY-MM-DD");
+      var curTime = places[index].timeArrival.format("HH:mm");
+      $("#set_arrival_date_input").val(curDate);
+      $("#set_arrival_time_input").val(curTime);
+    }
+    $("#set_arrival_date_input, #set_arrival_time_input").parent().toggle();
+  })
+
+  // 7. Set departure time.
+  $(document.body).on("click", ".set_departure_time_option", function(e){
+    e.preventDefault();
+    e.stopPropagation();
+    var index = parseInt($("#place_setting_div").attr("data-index"));
+    if ($("#set_departure_date_input").parent().is(':visible')) {
+      saveArrivalDepartureTimeFromInput(index, true);
+    } else {
+      var curDate = places[index].timeDeparture.format("YYYY-MM-DD");
+      var curTime = places[index].timeDeparture.format("HH:mm");
+      $("#set_departure_date_input").val(curDate);
+      $("#set_departure_time_input").val(curTime);
+    }
+    $("#set_departure_date_input, #set_departure_time_input").parent().toggle();
+  })
+
+  $("#set_arrival_date_input, #set_arrival_time_input, #set_departure_date_input, #set_departure_time_input").change(function(){
+    var index = parseInt($("#place_setting_div").attr("data-index"));
+    var isArrival = false;
+    if ($(this).attr("id").startsWith("set_arrival")) {
+      isArrival = true;
+    }
+    saveArrivalDepartureTimeFromInput(index, isArrival);
+  })
+
+  function saveArrivalDepartureTimeFromInput(index, isArrival){
+    var newDate, newTime;
+    if (isArrival) {
+      newDate = $("#set_arrival_date_input").val();
+      newTime = $("#set_arrival_time_input").val();
+    } else {
+      newDate = $("#set_departure_date_input").val();
+      newTime = $("#set_departure_time_input").val();
+    }
+
+    if (newDate != "" && newTime != "") {
+      if (isArrival) {
+        places[index].timeArrival = moment(newDate + " " + newTime);
+      } else {
+        places[index].timeDeparture = moment(newDate + " " + newTime);
+      }
+      updateFromArrivalToDepartureText(index);
+      updateAllPlaceTags();
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  // 8. Set travel mode.
+  $(document.body).on("click", ".change_travel_mode_option i", function(e){
+    e.preventDefault();
+    e.stopPropagation();
+    $("#place_setting_div").toggle();
+    clearCurIndexEditting();
+    $("#set_arrival_date_input, #set_arrival_time_input, #set_departure_date_input, #set_departure_time_input").parent().hide();
+
+    var index = parseInt($("#place_setting_div").attr("data-index"));
+    var this_ = $(this);
+    var newTravelMode;
+    if (this_.hasClass("fa-car")) {
+      newTravelMode = "DRIVING";
+    } else if (this_.hasClass("fa-bicycle")) {
+      newTravelMode = "BICYCLING";
+    } else if (this_.hasClass("fa-blind")) {
+      newTravelMode = "WALKING";
+    } else if (this_.hasClass("fa-bus")) {
+      newTravelMode = "TRANSIT";
+    }
+    // console.log(newTravelMode, places[index].travelInfoToHere.travelMode)
+    if (places[index].travelInfoToHere.travelMode != newTravelMode){
+      places[index].travelInfoToHere.travelMode = newTravelMode;
+      places[index].setTravelInfo();
+    }
+  })
+
+  $(document.body).on("click", ".travel-mode-icon", function(e){
+    $(this).parent().find(".travel-time-text, .travel-dist-text, .vertical-line").show();
+    var index = $(this).parent().parent().parent().attr("data-index");
+    var clickToChangeTravelMode = true;
+    $(this).parent().children().each(function(){
+      if (!($(this).is(':visible'))) {
+        console.log("false")
+        clickToChangeTravelMode = false;
+      }
+    });
+    if (clickToChangeTravelMode) {
+      var newTravelMode = $(this).attr("data-mode");
+      if (places[index].travelInfoToHere.travelMode != newTravelMode){
+        places[index].travelInfoToHere.travelMode = newTravelMode;
+        places[index].setTravelInfo();
+      }
+      $(this).parent().children(".travel-mode-icon").each(function(){
+        if (!$(this).hasClass(travelModeIconClass[newTravelMode])) {
+          $(this).hide();
+        }
+      })
+    } else {
+      // First make sure all other travel_mode_span doesn't expand the travel mode icons
+      for (var i=0; i<places.length; i++) {
+        if (i != index) {
+          $("#travel_mode_span_"+i).find(".travel-info-text").children(".travel-mode-icon").each(function(){
+            if (!$(this).hasClass(travelModeIconClass[places[i].travelInfoToHere.travelMode])) {
+              $(this).hide();
+            }
+          })
+        }
+      }
+      $(this).parent().children().each(function() {
+        $(this).show();
+      });
+      $(this).parent().find(".travel-time-text, .travel-dist-text, .vertical-line").hide();
+    }
+  })
+
+  ///////////////////////////////////////////////////////////////
+  //    Change place via directly typing on the place tag      //
+  ///////////////////////////////////////////////////////////////
+
+  $(document.body).on("keypress", ".custom-name-display", function(e) {
+    var key = e.which;
+    if (key == 13 && $(this).val().length > 0) {
+      if (!$(this).hasClass("insert_mode_blank_tag")) {
+        indexToUpdate = parseInt($(this).parent().attr("data-index"));
+      }
+      findLatLngFromAddress($(this).val())
+    }
+  })
+
+  $(document.body).on("click", ".place-tag-div", function(e){
+    var index = $(this).attr("data-index");
+    closeAllInfowindow()
+    places[index].infowindow.open(map, places[index].marker);
+  })
+
+  ////////////////////////////////////////////////////////////////
+
+  // Fix arrival and departure time of a place.
+  $(document.body).on("click", ".time-pin-icon", function(e) {
+    var index = parseInt($(this).parent().attr("data-index"));
+    if (places[index].isPinned) {
+      $(this).css("color", "dimgray");
+      $("#place_tag_"+index).find(".arrival-departure-time-badge").css("color", "dimgray").removeAttr("title");
+    } else {
+      $(this).css("color", "darkblue");
+      $("#place_tag_"+index).find(".arrival-departure-time-badge").css("color", "darkblue")
+                                  .attr("title", "The arrival and departure time are fixed and won't be autoset if there is a time conflict.");
+    }
+    places[index].isPinned = !places[index].isPinned;
+  })
+
+  function closeAllInfowindow() {
+    for (var place of places) {
+      place.infowindow.close();
+    }
+  }
+
+  function removePlace(index) {
+    var marker = places[index].marker
+    console.log("places["+index+"] requested to be removed.")
+
+    marker.infowindow.close();
+    marker.setMap(null);
+
+    // console.log("Place of index "+index+" requested to remove.");
+
+    if (places.length == 1) {
+      clearAllPlaces();
+      return;
+    } else if (index==0) {
+      try {
+        places[index+1].travelInfoToHere.directionsDisplay.setMap(null);
+        places[index+1].travelInfoToHere.directionsDisplay = null;
+      } catch(err) {
+        console.log(err.message);
+      }
+      // $("#travel_mode_span_" + (index+1)).remove()
+      // $("#icon_list_travel_mode_" + (index+1)).remove()
+    } else if (index == places.length-1) {
+      try {
+        places[index].travelInfoToHere.directionsDisplay.setMap(null);
+        places[index].travelInfoToHere.directionsDisplay = null;
+      } catch(err) {
+        console.log(err.message);
+      }
+      $("#travel_mode_span_" + index).remove()
+      $("#icon_list_travel_mode_" + index).remove()
+    } else {
+      places[index+1].prevPlace = places[index-1];
+      places[index-1].nextPlace = places[index+1];
+
+      try {
+        places[index].travelInfoToHere.directionsDisplay.setMap(null);
+        places[index].travelInfoToHere.directionsDisplay = null;
+        places[index+1].travelInfoToHere.directionsDisplay.setMap(null);
+      } catch(err) {
+        console.log(err.message);
+      }
+      places[index+1].setTravelInfo();
+      $("#travel_mode_span_" + index).remove()
+      $("#icon_list_travel_mode_" + index).remove()
+    }
+
+    places.splice(index, 1);
+
+    if (index == 0){
+      updateStartPoint();
+    }
+    updateAllPlaceTags();
+    updateTotalTimeAndDistText();
+    // Remove place tag
+    // $("#place_tag_"+index).remove();
+    // $("#icon_list_place_"+index).remove();
+  }
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+  function googleStaticMapURLGenerator() {
+    // Only generate the URL without the API key parameter. The staticmap image file will be obtain on backend.
+    // Used for default thumbnail of the trip.
+    var urlPrefix = "https://maps.googleapis.com/maps/api/staticmap?size=635x450";
+    var urlPostfix = "&key=";
+    var urlMarkers = "";
+    var urlPath = "&path=enc:"
+    $.each(places, function(index, place) {
+      // The regular iconURL cannot be used here, because we need shortened url in the API request.
+      urlMarkers += "&markers=label:" + (index+1) + "%7C" + place.lat + "," + place.lng + "|";
+      urlPath += place.encodedPolyline;
+    });
+    urlMarkers = urlMarkers.slice(0, -1);
+    urlPath = urlPath.slice(0, -1);
+
+    var googleStaticMapURLWithoutKeyParam = urlPrefix + urlMarkers + urlPostfix
+
+    return googleStaticMapURLWithoutKeyParam
+  }
+
+  function submitTrip() {
+    var this_trip = createTripJSON();
+    // console.log("Data to send:");
+    console.log(this_trip);
+    $("#saveTripButton").text("Saving...");
+
+      $.ajax({
+        url: "/trip/create/",
+        method: "POST",
+        data: this_trip,
+        success: function(data) {
+          window.onbeforeunload = undefined;
+          // window.location.replace("/trip/");
+          window.location.href="/trip/";
+        },
+        error: function(data) {
+            // console.log(data.statusText)
+            // console.log(data.status)
+        }
+      })
+    // console.log("Save request sent.")
+  }
+
+  function createTripJSON() {
+    var trip = {};
+    var trip_name = "Trip of {{ user.username }}, starts on " + $("#start_date_input").val();
+    if ($("#trip_name").val() != "") {
+      trip_name = $("#trip_name").val();
+    }
+    var group_size = 1;
+    if ($("#group_size").val() != "") {
+      group_size = parseInt($("#group_size").val());
+    }
+
+    if (places.length == 0){
+      alert("You need to add at least one destination to save the trip!")
+      return;
+    }
+
+    trip['mode']                  = 'create'
+    {% if update %}
+    trip['mode']                 = 'update'
+    trip['trip_id']               = {{ trip.id }}
+    {% endif %}
+    trip['is_public']             = true;
+    trip['creator_id']            = {{ user.id }}
+    trip['trip_name']             = trip_name;
+    trip['start_date']            = $("#start_date_input").val();
+    trip['start_time']            = moment(places[0].timeArrival);
+    trip['end_time']              = moment(places[places.length-1].timeDeparture);
+    trip['group_size']            = group_size,
+    trip['total_distance_meters'] = totalTravelDistInMeters;
+    trip['total_duration_days']   = tripDurationDays;
+    trip['time_on_travel_hours']  = totalHoursOnTravel;
+    trip['friends']               = [];
+    trip['places']                = [];
+    trip['description']           = $("#description").val();
+    trip['looking_for_partner']   = $("#lookingForPartner").is(':checked');
+    trip['googleStaticMapURLWithoutKeyParam'] = googleStaticMapURLGenerator();
+    for (var place of places) {
+      trip['places'].push(createPlaceJSON(place));
+    }
+
+    // console.log("trip object created")
+    return JSON.stringify(trip);
+  }
+
+  function createPlaceJSON(place) {
+    var placeJSON = {};
+
+    placeJSON['latLng']                       = place.latLng;
+    placeJSON['name']                         = place.name;
+    placeJSON['custom_name']                  = place.customName;
+    placeJSON['time_zone']                    = {
+                                                  dstOffset: place.timeZone.dstOffset,
+                                                  rawOffset: place.timeZone.rawOffset,
+                                                  timeZoneId:place.timeZone.timeZoneId,
+                                                  timeZoneName:place.timeZone.timeZoneName
+                                                }
+    placeJSON['travel_mode_to_here']          = place.travelInfoToHere.travelMode;
+    placeJSON['travel_time_to_here_sec']      = place.travelInfoToHere.travelTime.seconds;
+    placeJSON['travel_time_to_here_text']     = place.travelInfoToHere.travelTime.text;
+    placeJSON['travel_dist_to_here_meter']    = place.travelInfoToHere.travelDist.meters;
+    placeJSON['travel_dist_to_here_text']     = place.travelInfoToHere.travelDist.text;
+    placeJSON['time_arrival']                 = moment(place.timeArrival);
+    placeJSON['time_departure']               = moment(place.timeDeparture);
+    placeJSON['is_pinned']                    = place.isPinned;
+    placeJSON['note']                         = place.note.replace(/\n/g, "\\n");
+    placeJSON['weather_arrival']              = place.weatherArrival;
+    placeJSON['weather_departure']            = place.weatherDeparture;
+
+    return JSON.stringify(placeJSON);
+  }
+
+  // Handle csrf when sending POST requests using AJAX.
+  function getCookie(name) {
+    var cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        var cookies = document.cookie.split(';');
+        for (var i = 0; i < cookies.length; i++) {
+            var cookie = jQuery.trim(cookies[i]);
+            // Does this cookie string begin with the name we want?
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+  }
+  var csrftoken = getCookie('csrftoken');
+
+  function csrfSafeMethod(method) {
+    // these HTTP methods do not require CSRF protection
+    return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+  }
+  $.ajaxSetup({
+      beforeSend: function(xhr, settings) {
+          if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+              xhr.setRequestHeader("X-CSRFToken", csrftoken);
+          }
+      }
+  });
+
+
+  // Set start_date_input default value
+  document.getElementById('start_date_input').valueAsDate = new Date();
+
+  $("#search_content_input").keypress(function(event){
+    if(event.which == 13){
+      findLatLngFromAddress();
+    }
+  })
+
+  // Hover effects for the icons to the right of place list.
+  $(document.body).on("mouseover", "#listOfIcons div", function(e){
+    $(this).css("opacity", 1);
+  });
+
+  $(document.body).on("mouseout", "#listOfIcons div", function(e){
+    if (curIndexEditting != $(this).attr("data-index") && !$(this).hasClass("icon_list_travel_mode_blank")){
+      $(this).css("opacity", 0);
+    }
+  });
+
+  $(document.body).on("mouseover", "#listOfPlaces div", function(e){
+    var index = $(this).attr("data-index");
+    $("#icon_list_place_"+index).css("opacity", 1);
+  });
+
+  $(document.body).on("mouseout", "#listOfPlaces div", function(e){
+    var index = $(this).attr("data-index");
+    if (index != curIndexEditting){
+      $("#icon_list_place_"+index).css("opacity", 0);
+    }
+  });
+
+  window.onbeforeunload = confirmExit;
+  function confirmExit()
+  {
+     if(confirm)
+       return "You have attempted to leave this page. Are you sure you want to exit this page?";
+     else
+       return;
+  }
+
+   /////////////////////////////////////////////////////////////////
+  // Functions below this line is dedicated to UPDATE trip page. //
+ /////////////////////////////////////////////////////////////////
+
+  function loadOldData() {
+    addingPlaceAllowed = false;
+
+    var create_trip_form = $("#create_trip_form");
+    create_trip_form.find("#trip_name").val("{{ trip.title }}");
+    create_trip_form.find("#start_date_input").val("{{ trip.get_start_date_yyyymmdd }}")
+    create_trip_form.find("#group_size").val({{ trip.group_size }})
+    {% if trip.looking_for_partner %}
+    $("#lookingForPartner").prop('checked', true);
+    {% endif %}
+    $("#description").val("{{ trip.description }}")
+
+    places = [];
+    {% for place in places %}
+      var marker = new google.maps.Marker({
+        position: {lat: {{ place.lat }}, lng: {{ place.lng }}},
+        map: map,
+        icon: iconURLPrefix + {{ forloop.counter }} + "|" + markerBackgroundColor + "|" + markerNumberColor
+      });
+      marker.infowindow = new google.maps.InfoWindow({
+          maxWidth: 270
+      });
+      marker.infowindow.setContent( infowindowPrefix + "{{ place.custom_name }}" +
+                                    infowindowMidContent + "{{ place.note }}".replace(/\\n/g,"\n") +
+                                    infowindowPostfix)
+      google.maps.event.addListener(marker, 'click', function() {
+        this.infowindow.open(map, this);
+      });
+
+      var new_place = new Place(marker);
+      new_place.name = "{{ place.name }}";
+      new_place.customName = "{{ place.custome_name }}";
+      if (new_place.customName.length == 0) new Promise(function(resolve, reject) {
+        new_place.customName = "{{ place.name }}";
+      });
+      new_place.lat = marker.getPosition().lat();
+      new_place.lng = marker.getPosition().lng();
+      new_place.latLng = {lat: marker.getPosition().lat(), lng: marker.getPosition().lng()};
+      new_place.note = "{{ place.note }}".replace(/\n/g, "\n");
+      new_place.timeArrival = moment("{{place.get_time_arrival}}");
+      new_place.timeDeparture = moment("{{place.get_time_departure}}");
+      new_place.infowindow = marker.infowindow;
+      // var counter = {{ forloop.counter }};
+      {% if not forloop.first %}
+        // console.log(places)
+        new_place.note = "{{ place.note }}";
+        new_place.prevLatLng = places[places.length-1].latLng;
+        new_place.travelInfoToHere.travelMode = "{{ place.travel_mode_to_here }}".toUpperCase();
+        new_place.travelInfoToHere.travelTime.seconds = {{ place.travel_time_to_here_sec }};
+        new_place.travelInfoToHere.travelDist.meters = {{ place.travel_dist_to_here_meter }};
+        new_place.travelInfoToHere.travelTime.text = "{{ place.travel_time_to_here_text }}";
+        new_place.travelInfoToHere.travelDist.text = "{{ place.travel_dist_to_here_text }}";
+      {% endif %}
+
+      places.push(new_place)
+    {% endfor %}
+    if (places.length <= 1){
+      adjustMapCamera();
+      updateAllPlaceTags();
+      addingPlaceAllowed = true;
+    } else {
+      showRoutesOnMap();
+    }
+  }
+
+  function showRoutesOnMap(){
+    var directionsService = new google.maps.DirectionsService();
+    places.forEach(function(place, index){
+      if (place.prevLatLng != null){
+      var request = {
+        origin: place.prevLatLng,
+        destination: place.latLng,
+        travelMode: place.travelInfoToHere.travelMode
+      };
+      directionsService.route(request, function(response, status) {
+        if (status == 'OK') {
+          var directionsDisplay = new google.maps.DirectionsRenderer({
+                                                  suppressMarkers: true,
+                                                  suppressInfoWindows: true,
+                                                  preserveViewport: true,
+                                                  suppressBicyclingLayer: true
+                                                });
+          directionsDisplay.setMap(map);
+          directionsDisplay.setDirections(response);
+
+          var strokeColor;
+          if (place.travelInfoToHere.travelMode == "BICYCLING"){
+            strokeColor = 'orange';
+          } else if (place.travelInfoToHere.travelMode == "WALKING") {
+            strokeColor = 'red';
+          } else if (place.travelInfoToHere.travelMode == "TRANSIT") {
+            strokeColor = 'green';
+          } else{
+            strokeColor = '#0088FF';
+          }
+          directionsDisplay.setOptions({
+            polylineOptions: {
+              strokeColor: strokeColor,
+              strokeWeight: 6,
+              strokeOpacity: 0.6
+            }
+          });
+
+          places[index].travelInfoToHere.directionsDisplay = directionsDisplay;
+
+          if (index == places.length - 1){
+            updateAllPlaceTags();
+            addingPlaceAllowed = true
+          }
+        } else  {
+          if (status == 'ZERO_RESULTS') {
+            // alert("A route is not avalaible with the selected travel mode!");
+          }
+        }
+      });
+      }
+    })
+  }
+
+</script>
+
+{% block script %}{% endblock %}
+
+<script async defer
+src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAoX1pdP9-vueaY2JVmIxViYdUdY1DbHJM&callback=initMap">
+</script>
+
+</body>
+</html>

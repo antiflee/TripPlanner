@@ -1,0 +1,293 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
+	<title>Trip Planner</title>
+	<link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+	<link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+	<link href="https://fonts.googleapis.com/css?family=Lato" rel="stylesheet">
+	<link rel="icon" type="image/png" href="{% static 'home/images/logo-darker.png' %}" />
+
+<style media="screen">
+  body {
+    font-family: "Lato", Georgia, serif;
+  }
+
+  h1 {
+    margin-top: 5px;
+  }
+
+  .navbar-inverse {
+    background: #2c3e50;
+    font-size: 120%;
+  }
+
+  .navbar-inverse .navbar-nav>li>a {
+    color: white;
+  }
+
+  .navbar-inverse .navbar-nav>li>a:hover {
+    background: #242424;
+  }
+
+  .navbar-inverse .navbar-brand {
+    color: white;
+  }
+
+  .nav.nav-tabs .nav-item a {
+    border-radius: 1px;
+    font-size: 1.2em;
+  }
+
+  #logo {
+    padding: 0;
+    position: relative;
+    top: 2px;
+  }
+
+  #messagewindow {
+    position: fixed;
+    margin: auto;
+    width: 500px;
+    margin: 10px auto;
+    left: 0;
+    right: 0;
+    display: none;
+    z-index: 3;
+  }
+
+  #search-clear-button {
+    position: absolute;
+    right: 10px;
+    top: 0;
+    bottom: 0;
+    height: 14px;
+    margin: auto;
+    font-size: 14px;
+    cursor: pointer;
+    color: #ccc;
+    display: none;
+  }
+
+  .thumbnail {
+    position: relative;
+  }
+
+  .thumbnail_img_div {
+     height: 250px;
+     width: 352px;
+     overflow: hidden;
+  }
+</style>
+
+{% include 'navbar.html' %}
+<div class="container">
+  <div class="row">
+    <div class="col-sm-7">
+      <ul class="nav nav-tabs" role="tablist">
+        <li class="nav-item">
+          <a class="nav-link active" id="tab-1" data-toggle="tab" href="#"
+            onclick="loadPlaceContainer('place-container', '', 'trips_count')">
+            Most Visited
+          </a>
+        </li>
+        <li class="nav-item">
+          <!-- <a class="nav-link" id="tab-2" data-toggle="tab" href="#"
+          onclick="loadPlaceContainer('place-container', '', 'average_rating')">
+            Most Liked
+          </a> -->
+        </li>
+      </ul>
+    </div>
+  </div>
+  <br>
+  <div class="container">
+    <div class="row" id="place-container" data-url='/api/place/'>
+
+    </div>
+    <div class="text-center">
+      <a href="#" id='loadmore'><h4>Load More Places</h4></a>
+    </div>
+  </div>
+
+
+</div>
+<script type="text/javascript" src="https://code.jquery.com/jquery-2.1.4.js"></script>
+<script type="text/javascript" src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+<script>
+function getParameterByName(name, url) {
+    if (!url) url = window.location.href;
+    name = name.replace(/[\[\]]/g, "\\$&");
+    var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
+        results = regex.exec(url);
+    if (!results) return null;
+    if (!results[2]) return '';
+    return decodeURIComponent(results[2].replace(/\+/g, " "));
+}
+
+var placeList = [];
+var sort_by;
+
+function loadPlaceContainer(placeContainerID, q_, sort_by, url_){
+  var query = getParameterByName('q') || q_
+  var sort = getParameterByName('sort')
+  if (sort_by){
+    sort = sort_by;
+  }
+  placeList = [];
+  var nextPlaceUrl;
+  // var initialURL = "/api/place/";
+  var placeContainer;
+  if (placeContainerID) {
+    placeContainer = $("#" + placeContainerID)
+  } else {
+    placeContainer = $("#place-container")
+  }
+
+  placeContainer.html("")
+  var initialURL = placeContainer.attr("data-url") || "/api/place/";
+
+  function parsePlace() {
+    if(placeList == 0){
+      placeContainer.text("No places currently found.")
+    } else {
+      $.each(placeList, function(key, value){
+        var placeKey = key;
+        attachPlace(value);
+      })
+    }
+  }
+
+  function attachPlace(placeValue) {
+    var placeName = placeValue.name;
+    var placeMapImage = placeValue.map_image;
+    var placeTripsCount = placeValue.trips_count;
+    var placeLat = placeValue.lat;
+    var placeLng = placeValue.lng;
+
+    var placeFormattedHtml =   "<div class='col-sm-6 col-md-4'>" +
+                                "<div class='thumbnail'>" +
+                                  "<div class='thumbnail_img_div'>" +
+                                  "<a href='/place/" + placeValue.id + "'>" +
+                                    "<img class='thumbnail_img' src='" + placeMapImage + "' alt='No Image Available'>" +
+                                  "</a>" +
+                                  "</div>" +
+                                  "<div class='caption'>" +
+                                    "<h4 class='place-title'>" + placeName + "</h4>" +
+                                    "<h5 style='margin-bottom:0;'>" +
+                                      " <span> Visited times: " + placeTripsCount + "</span>" +
+                                    "</h5>" +
+                                  "</div>" +
+                                "</div>" +
+                              "</div>"
+
+    $("#place-container").append(placeFormattedHtml);
+  }
+
+  function fetchPlaces(url){
+    fetchUrl = url || initialURL
+    $.ajax({
+      url: fetchUrl,
+      data: {
+        "q": query,
+        "sort": sort,
+      },
+      method: "GET",
+      success: function(data) {
+        placeList = data.results;
+        if (data.next){
+          nextPlaceUrl = data.next;
+        } else {
+          $("#loadmore").css("display", "none")
+        }
+        parsePlace()
+      },
+      error: function(data) {
+        console.log("error")
+        console.log(data)
+      }
+    })
+  }
+
+	if (url_ === undefined) {
+		fetchPlaces();
+	} else {
+		fetchPlaces(url_);
+	}
+
+  $("#loadmore").bind("click", function(event){
+    event.preventDefault();
+    if (nextPlaceUrl) {
+      fetchPlaces(nextPlaceUrl);
+    }
+    // load more items
+  });
+}
+
+$(document).ready(function(){
+  loadPlaceContainer("place-container", "");
+});
+
+// Auto search.
+$(document).ready(function(){
+    var typingTimer;
+    var doneInterval = 800; // in ms
+    var searchInput = $("#navbar-search-box-list-item input[type=text]")
+    var searchQuery;
+
+    searchInput.keyup(function(event){
+      searchQuery = $(this).val()
+      clearTimeout(typingTimer)
+      typingTimer = setTimeout(doneSearchTyping, doneInterval)  // Start searching after doneInterval not typing.
+    })
+
+    searchInput.keydown(function(event){
+      clearTimeout(typingTimer)
+    })
+
+    function doneSearchTyping() {
+      // do search
+      var url_ = '/api/place/';
+      loadPlaceContainer("place-container", searchQuery, "", url_);
+    }
+  })
+
+  $("#tab-1").tab('show');
+
+	$("#navbar-search-box-list-item input[type='text']").attr("placeholder", "Search cities...");
+
+  var searchInput = $("#navbar-search-box-list-item input[type='text']");
+
+	searchInput.on("keyup", function(e) {
+		if ($(this).val() === "") {
+			$("#search-clear-button").hide();
+		} else {
+			$("#search-clear-button").show();
+		}
+	})
+
+  $("#search-clear-button").on("click", function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    $("#navbar-search-box-list-item input[type='text']").val("");
+    $("#search-clear-button").hide();
+  })
+
+  // Auto load more places while scrolling to the bottom.
+  $(function(){
+    var btn = $('#loadmore');
+    var win = $(window);
+    win.scroll(function(e){
+        var scrollTop = win.scrollTop();
+        if (btn.css('display') !== 'none' && scrollTop + win.height() >= $(document).height()) {
+          btn.click();
+        }
+    });
+  });
+
+</script>
+
+</body>
+</html>

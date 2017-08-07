@@ -1,0 +1,18 @@
+<!-- Modal -->
+<div class="modal fade" id="editNameModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title" id="editModalLabel">Customize the name of this place</h4>
+      </div>
+      <div class="modal-body">
+          <input type="text" class='form-control' name="customName" maxlength="150">
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+        <button type="button" id="edit_name_save_button" class="btn btn-primary" data-dismiss="modal" onclick="saveEditName()">Save</button>
+      </div>
+    </div>
+  </div>
+</div>

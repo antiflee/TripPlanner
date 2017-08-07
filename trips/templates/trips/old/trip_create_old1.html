@@ -1,0 +1,921 @@
+{% extends "base.html" %}
+{% load static %}
+
+
+{% block meta %}
+<meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
+<meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
+{% endblock %}
+
+{% block styles %}
+<style>
+  /* Always set the map height explicitly to define the size of the div
+   * element that contains the map. */
+  #map {
+    height: 450px;
+  }
+  /* Optional: Makes the sample page fill the window. */
+  html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+  }
+
+  input[type=number]{
+    width: 80px;
+  }
+
+  .btn-space {
+    margin-right: 5px;
+  }
+
+  .place-tag {
+    margin: 5px;
+    padding-left: 25px;
+    background-color: #aff3ff;
+    height: 3em;
+  }
+
+  .list-group-item {
+    position: relative;
+    padding-right: 30px;
+  }
+
+  .badge {
+    background-color: #f89406;
+  }
+
+  .move-place {
+    position: absolute;
+    right: 3px;
+    top: 3px;
+    background-color: transparent;
+  }
+
+  .travel_mode_span .label {
+    margin-bottom: 8px;
+    display: inline-block;
+  }
+
+  .travel_mode_span h4 {
+    margin: 2px;
+  }
+
+  .glyphicon {
+    font-size: 1.3em;
+    margin-left: 35px;
+    margin-right: 10px;
+    position: relative;
+    top: 7px;
+  }
+
+  #obtain_weather_button {
+    position: absolute;
+    left: 300px;
+    top: 7px;
+    display: none;
+  }
+
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+<h1>Start a new trip</h1>
+<hr>
+
+<div class="panel panel-default">
+  <div class="panel-heading">
+    <h3 class="panel-title">1. Give it a name </h3>
+  </div>
+  <div class="panel-body">
+
+    <form id="create_trip_form" class="form-inline">
+      <label class="sr-only" for="inlineFormInput">TripName</label>
+      <input id="trip_name" type="text" class="form-control mb-2 mr-sm-2 mb-sm-0 input-lg" id="inlineFormInput" name="trip_title" placeholder="Name of this trip">
+
+      <label class="sr-only" for="inlineFormInputDate">StartDate</label>
+      <div class="input-group mb-2 mr-sm-2 mb-sm-0 input-lg">
+        <div class="input-group-addon">Start from</div>
+        <input id="start_date_input" type="date" class="form-control" id="inlineFormInputGroup">
+      </div>
+      <!-- <div class="input-group mb-2 mr-sm-2 mb-sm-0 input-lg col-xs-2">
+        <div class="input-group-addon">Duration: </div>
+        <input type="text" value="0" class="form-control col-xs-1 text-center" name="trip_duration" readonly>
+        <div class="input-group-addon">days</div>
+      </div> -->
+    </form>
+
+  </div>
+</div>
+
+<div class="panel panel-default">
+  <div class="panel-heading">
+    <h3 class="panel-title">2. Plan your trip </h3>
+  </div>
+  <div class="panel-body">
+
+    <div class="row">
+      <div class="col-sm-7 col-xs-12 ">
+        <!-- <form id="search_place_form" class="form-inline">
+          <label class="sr-only" for="inlineFormInput">SearchPlace</label>
+          <input type="text" class="form-control mb-2 mr-sm-2 mb-sm-0" id="inlineFormInput" name="place_to_search" placeholder="Search places">
+          <button id="search_place_form_button" class="btn btn-primary" type="button" name="button">Search</button>
+        </form> -->
+        <div id="search_place_form" class="form-inline" role="search">
+          <div class="form-group">
+            <input id="search_content_input" type="text" class="form-control" placeholder="Search places">
+          </div>
+          <button class="btn btn-default" onclick="findLatLngFromAddress()">Add</button>
+          <button class="btn btn-default pull-right" onclick="updateTripInfo()">Update</button>
+          <button class="btn btn-default pull-right" onclick="clearAllPlaces()">Clear All</button>
+        </div>
+        <br>
+        <div id="map" height="460px" width="100%"></div>
+      </div>
+
+      <div class="col-sm-4 placeListContainer">
+          <h2 style="margin-top: 5px;"> Summary </h2>
+          <button id="obtain_weather_button" type="button" class="btn btn-default pull-right" name="button">Obtain Weather Info</button>
+          <br>
+          <div id="listOfPlaces" class="list-group">
+            <!-- <a href="#" class="list-group-item"><span class="badge">4d</span>Cras justo odio</a>
+            <a href="#" class="list-group-item">Dapibus ac facilisis in</a>
+            <a href="#" class="list-group-item">Morbi leo risus</a>
+            <a href="#" class="list-group-item">Porta ac consectetur ac</a>
+            <a href="#" class="list-group-item">Vestibulum at eros</a> -->
+          </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+
+<div class="panel panel-default">
+  <div class="panel-heading">
+    <h3 class="panel-title"> 3. Review the trip. </h3>
+  </div>
+  <div class="panel-body">
+    <button class="btn btn-default" id="reviewTripButton" onclick="reviewTrip()" type="button" name="button">Review</button>
+  </div>
+</div>
+
+<div class="panel panel-default">
+  <div class="panel-heading">
+    <h3 class="panel-title"> 4. Save it! You can edit it later. </h3>
+  </div>
+  <div class="panel-body">
+    <button class="btn btn-success" id="saveTripButton" onclick="submitTrip()" type="button" name="button">Save</button>
+    <button class="btn btn-default" type="button" name="button">Share</button>
+  </div>
+</div>
+
+</div>
+
+<script type="text/javascript" src="https://code.jquery.com/jquery-2.1.4.js"></script>
+<script type="text/javascript" src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+<!-- <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/0.4.1/html2canvas.min.js"></script> -->
+<script>
+  var PlaceMarked = class PlaceMarked {
+                      constructor(marker){
+                        this.marker                    = marker;
+                        this.infowindow                = marker.infowindow;
+                        this.lat                       = marker.getPosition().lat();
+                        this.lng                       = marker.getPosition().lng();
+                        this.latLng                    = {lat: marker.getPosition().lat(), lng: marker.getPosition().lng()};
+                        this.prevLatLng                = null;
+                        this.name                      = "Unknown.";
+                        this.travelModeToHere          = "DRIVING";
+                        this.travelTimeToHereInText    = "";
+                        this.travelTimeToHereInSec     = 0;
+                        this.travelDistToHereInText    = "";
+                        this.travelDistToHereInMeter   = 0;
+                        this.encodedPolyline           = "";
+                        this.daysToStay                = 0;
+                        this.weatherArrival            = "";
+                        this.weatherDeparture          = "";
+                      }
+  }
+
+  var map;
+  var markers = [];
+  var placeNames = [];
+  var latLangs = [];
+  var places = [];
+  var markerIndex;
+  var markerLat;
+  var markerLng;
+  var messagewindow;
+  var tripDurationDays = 0;
+  var totalHoursOnTravel = 0;
+  var totalDaysOnTravel;
+  var leftHoursOnTravel;
+  var tripDistanceMeters;
+
+  var geocoder;
+  var directionsService;
+  var directionsDisplay;
+  var directionsDisplayArray = [];
+
+  var iconURLPrefix = "http://chart.apis.google.com/chart?chst=d_map_pin_letter&chld=";
+  var markerBackgroundColor = "407F7D"  // Used in the api for "icon" argument
+  var markerNumberColor = "FFFFFF"      // Used in the api for "icon" argument
+
+  var infowindowContent;
+  var prefix = '<div class="info-window">' +
+                '<div class="info-content">' +
+                  '<form class="form-inline" '
+  var postfix1 = '>' +
+                // '<h3>Info Window Content</h3>' +
+                '<div class="input-group mb-2 mr-sm-2 mb-sm-0 input-lg">' +
+                    '<div class="input-group-addon">How to get here</div>' +
+                    '<select class="form-control travel_mode_selection">' +
+                      '<option value="DRIVING" selected>Driving</option>' +
+                      '<option value="TRANSIT">Transit</option>' +
+                      '<option value="WALKING">Walking</option>' +
+                      '<option value="BICYCLING">Cycling</option>' +
+                      '<option value="FLIGHT">Flight</option>' +
+                      '<option value="START">Start Point</option>' +
+                    '</select>' +
+                '</div>'
+  var postfix2 ='<div class="input-group mb-2 mr-sm-2 mb-sm-0 input-lg">' +
+                    '<div class="input-group-addon">Stay for</div>' +
+                    '<input type="number" min="0" class="form-control text-center days_to_stay_input" placeholder="0" style="width: 4em">' +
+                    '<div class="input-group-addon">days</div>' +
+                  '</div><br>' +
+                  '<div class="input-group mb-2 mr-sm-2 mb-sm-0 input-lg">' +
+                    '<button class="btn btn-primary btn-space updateMarkerButton" type="button">Save</button>' +
+                    '<button class="btn btn-danger btn-space removeMarkerButton" type="button">Remove this place</button>' +
+                    // '<button class="btn btn-default btn-space closeMarkerButton" type="button"">Close</button>' +
+                  '</div>' +
+                '</form>' +
+                '</div></div>';
+  var postfix = postfix1 + postfix2;
+
+  function updateStartPointInfowindow() {
+    places[0].travelModeToHere = 'START';
+    places[0].infowindow.setContent(
+                          prefix +
+                            'data-marker-index="' + 0 + '" ' +
+                            'data-marker-lat="' + places[0].lat + '" ' +
+                            'data-marker-lng="' + places[0].lng + '" ' +
+                          '>' + postfix2
+                          )
+  }
+
+  function pushNamestoPlaceNames() {
+    placeNames = [];
+    for (var obj of places) {
+      updateNameFromPlace(obj);
+    }
+  }
+
+  function updateNameFromPlace(place) {
+    var locality  = "";   // Incorporated city/town name.
+    var adminLvl2 = "";   // County name;
+    var adminLvl1 = "";   // State name.
+    var latLng = place.latLng;
+
+    geocoder.geocode({'location': latLng}, function(results, status) {
+      if (status === 'OK') {
+        var address = "";
+        if (results[1]) {
+          // console.log(results[1])
+
+          for (var obj of results[1]['address_components']) {
+            switch (obj['types'][0]) {
+              case 'locality':
+                locality = obj['long_name'];
+                // console.log('locality')
+                break;
+
+              case 'administrative_area_level_2':
+                adminLvl2 = obj['long_name'];
+                // console.log('adminLvl2')
+                break;
+
+              case 'administrative_area_level_1':
+                adminLvl1 = obj['short_name'];
+                // console.log('adminLvl1')
+            }
+          }
+          // console.log("locality " + locality);
+          address = locality? locality: adminLvl2;
+          address += ", "+adminLvl1;
+
+          if (!(adminLvl1 && (locality || adminLvl2))) {
+            address = "Unknown.";
+          }
+        } else {
+          window.alert('No results found');
+        }
+
+        setTimeout(function(){
+          placeNames.push(address);
+          place.name = address;
+        },500);
+      } else {
+        window.alert('Geocoder failed due to: ' + status);
+      }
+    });
+  }
+
+
+  // Add a button to the Google map that generate the route based on users' pinpoints.
+  function GenerateRouteControl(controlDiv, map) {
+
+    // Set CSS for the control border.
+    var controlUI = document.createElement('div');
+    controlUI.style.backgroundColor = '#f9f6ed';
+    controlUI.style.border = '2px solid #f9f6ed';
+    controlUI.style.borderRadius = '3px';
+    controlUI.style.boxShadow = '0 2px 6px rgba(0,0,0,.3)';
+    controlUI.style.cursor = 'pointer';
+    controlUI.style.marginBottom = '22px';
+    controlUI.style.textAlign = 'center';
+    controlUI.title = 'Click to generate the route';
+    controlDiv.appendChild(controlUI);
+
+    // Set CSS for the control interior.
+    var controlText = document.createElement('div');
+    controlText.style.color = 'rgb(64,127,125)';
+    controlText.style.fontFamily = 'Roboto,Arial,sans-serif';
+    controlText.style.fontSize = '16px';
+    controlText.style.lineHeight = '38px';
+    controlText.style.paddingLeft = '5px';
+    controlText.style.paddingRight = '5px';
+    controlText.innerHTML = 'Update Trip Info';
+    controlUI.appendChild(controlText);
+
+    // Setup the click event listeners.
+    controlUI.addEventListener('click', updateTripInfo);
+  }
+
+
+  function initMap() {
+    var directionsService = new google.maps.DirectionsService;
+    // var directionsDisplay = new google.maps.DirectionsRenderer;
+    var california = {lat: 37.4419, lng: -122.1419};
+
+    map = new google.maps.Map(document.getElementById('map'), {
+      center: california,
+      zoom: 7
+    });
+
+    // directionsDisplay.setMap(map);
+
+    // Create the DIV to hold the control and call the CenterControl()
+    // constructor passing in this DIV.
+    var generateRouteDiv = document.createElement('div');
+    var generateRoute = new GenerateRouteControl(generateRouteDiv, map);
+    generateRouteDiv.index = 1;
+    map.controls[google.maps.ControlPosition.TOP_RIGHT].push(generateRouteDiv)
+
+    geocoder = new google.maps.Geocoder;
+    infowindow = new google.maps.InfoWindow({
+      content: document.getElementById('form')
+    })
+
+    messagewindow = new google.maps.InfoWindow({
+      content: document.getElementById('message')
+    });
+
+    google.maps.event.addListener(map, 'click', function(event) {
+      var latLng = event.latLng;
+      addMarkerFromLatLng(latLng);
+    });
+  }
+
+  function addMarkerFromLatLng(latLng) {
+    // console.log(latLng);
+    var marker = new google.maps.Marker({
+      position: latLng,
+      map: map,
+      icon: iconURLPrefix + (places.length + 1) + "|" + markerBackgroundColor + "|" + markerNumberColor
+    });
+
+    var infowindow = new google.maps.InfoWindow({
+        maxWidth: 270
+    });
+
+    marker.infowindow = infowindow;
+
+    markerIndex = places.length;
+    markerLat = marker.getPosition().lat();
+    markerLng = marker.getPosition().lng();
+    infowindowContent = prefix +
+                          'data-marker-index="' + markerIndex + '" ' +
+                          'data-marker-lat="' + markerLat + '" ' +
+                          'data-marker-lng="' + markerLng + '" ' +
+                        postfix;
+
+    marker.infowindow.setContent(infowindowContent);
+    markers.push(marker);
+
+    var newPlace = new PlaceMarked(marker);
+    places.push(newPlace);
+    if (places.length == 1) {
+      updateStartPointInfowindow();
+    }
+
+    google.maps.event.addListener(marker, 'click', function() {
+      this.infowindow.open(map, this);
+    });
+  }
+
+  // Return lat, lng from the client's search content.
+  function findLatLngFromAddress() {
+    var urlPrefix = "https://maps.googleapis.com/maps/api/geocode/json?address=";
+    var APIKEY = "AIzaSyAEKyPtuFyornsBzFkF1pUWEHPSy3bVr9o";
+    var searchContent = $("#search_content_input").val();
+    var googleGeoCodingUrl = urlPrefix + searchContent + "&key=" + APIKEY;
+
+    $.ajax({
+      url: googleGeoCodingUrl,
+      method: "GET",
+      success: function(data) {
+        console.log(data);
+        if (data['status'] == 'OK') {
+          // find latLng
+          var latVal = data['results'][0]['geometry']['location']['lat'];
+          var lngVal = data['results'][0]['geometry']['location']['lng'];
+          var latLng =  {
+                          lat: data['results'][0]['geometry']['location']['lat'],
+                          lng: data['results'][0]['geometry']['location']['lng']
+                        };
+          // add marker and place
+          if (latLng != null){
+            addMarkerFromLatLng(latLng)
+            //  center map
+            map.setCenter(latLng);
+          } else {
+            // error message
+          }
+        } else {
+          // error message
+        }
+        $("#search_content_input").val("");
+        adjustMapCamera();
+      },
+      error: function(data) {
+        console.log('error');
+        console.log(data);
+      }
+    })
+  }
+
+  function adjustMapCamera(){
+    var bounds = new google.maps.LatLngBounds();
+    for (var place of places) {
+     bounds.extend(place.marker.getPosition());
+    }
+    map.fitBounds(bounds);
+  }
+
+  // This functino executes when the user clicks the button on the top-right of the map.
+  function updateTripInfo() {
+    // 0. Update places[i+1].prevLatLng, so that in step 2, we may be able to handle the async issue.
+    // Need to update prevLatLng when removing one of the point on the map.
+    for (var i=1; i<places.length; i++) {
+      places[i].prevLatLng = places[i-1].latLng;
+    }
+    // 1. Update the list of places on the right side of the google map.
+    var container = $("#listOfPlaces");
+    pushNamestoPlaceNames();
+    container.html("<h3 style='color:#6AA9A7;'>Updating...</h3>");
+    setTimeout(function(){
+      container.html("");
+      $.each(placeNames, function(index, placeName) {
+        // container.append("<h4>"+placeName+"</h4><br>")
+        if (index > 0) {
+          var travelModeString = places[index].travelModeToHere;
+          container.append(
+                            '<span class="travel_mode_span" id="travel_mode_span_' + index + '">' +
+                              '<h4>' +
+                                '<i class="glyphicon glyphicon-arrow-down" aria-hidden="true"></i>' +
+                                '<a class="label label-info" ' +
+                                'onclick="popUpInfowindowByIndex(' + index + ')">' +
+                                travelModeString +'</a>   ' +
+                                '<span class="label label-warning">Calculating</span>' +
+                              '</h4>' +
+                            '</span>'
+                          );
+        }
+
+        var daysToStayString = "0";
+        if (places[index].daysToStay.length > 0) {
+          daysToStayString = places[index].daysToStay;
+        }
+        container.append('<a href="#" class="list-group-item" ' +
+                          'id="place_tag_' + index + '" ' +
+                          'data-index=' + index + ' ' +
+                          'onclick="popUpInfowindowByIndex(' + index +
+                          ')">' +
+                          '<span class="badge move-place">' +
+                          '<table>' +
+                            '<tr>' +
+                              '<td>' +
+                              '<a href="#">' +
+                                '<i class="fa fa-chevron-up fa-lg" aria-hidden="true"></i>' +
+                              '</a>' +
+                              '<br>' +
+                              '<a href="#">' +
+                              '<i class="fa fa-chevron-down fa-lg" aria-hidden="true"></i>' +
+                              '</a>' +
+                              '</td>' +
+                            '</tr>' +
+                          '</table>' +
+                          '</span>' +
+                          '<span class="badge">' + daysToStayString + 'd</span>' +
+                          placeName + '</a>'
+                        );
+      })
+    }, 1000);
+
+    // 2. Update the routes on google map using the waypoints.
+    var directionsService = new google.maps.DirectionsService();
+    for (var display of directionsDisplayArray) {
+      if (display != null) {
+        display.setMap(null);
+        display = null;
+      }
+    }
+    directionsDisplayArray = [];
+    // directionsLegsArray = [];
+
+    if (places.length > 1) {
+      places.forEach(function(place, index){
+        if (place.prevLatLng != null){
+        var request = {
+          origin: place.prevLatLng,
+          destination: place.latLng,
+          travelMode: place.travelModeToHere
+        };
+        directionsService.route(request, function(response, status) {
+          if (status == 'OK') {
+            var directionsDisplay = new google.maps.DirectionsRenderer({
+                                                    suppressMarkers: true,
+                                                    suppressInfoWindows: true,
+                                                    preserveViewport: true,
+                                                    suppressBicyclingLayer: true
+                                                  });
+            directionsDisplay.setMap(map);
+            console.log(response);
+
+            // For Directions Leg, see: https://developers.google.com/maps/documentation/javascript/directions#Legs
+            var leg = response['routes'][0]['legs'][0];
+            if (leg != null) {
+              place.travelDistToHereInText      = leg['distance']['text'];
+              place.travelDistToHereInMeter   = leg['distance']['value'];
+              place.travelTimeToHereInText      = leg['duration']['text'];
+              place.travelTimeToHereInSec     = leg['duration']['value'];
+            }
+            var polyline = response['routes'][0]['overview_polyline']
+            if (polyline != null){
+              place.encodedPolyline = polyline;
+            }
+            // $("#travel_mode_span_"+index).find(".label-warning").text(place.travelTimeToHereInText);
+            directionsDisplay.setDirections(response);
+            directionsDisplayArray.push(directionsDisplay);
+          } else  {
+            if (status == 'ZERO_RESULTS') {
+              alert("A route is not avalaible with the selected travel mode!");
+            }
+          }
+        });
+        }
+      })
+    }
+
+    // 3. Adjust map and Update time cost on travel.
+    adjustMapCamera();
+    setTimeout(updateTravelTimeText, 750*places.length);
+  }
+
+  function updateTravelTimeText() {
+    var totalTravelTimeInSec = 0;
+    totalHoursOnTravel = 0;
+    for (var i=1; i<places.length; i++) {
+      totalTravelTimeInSec += places[i].travelTimeToHereInSec;
+      if (places[i].travelTimeToHereInSec > 0){
+        $("#travel_mode_span_"+i).find(".label-warning").text(places[i].travelTimeToHereInText);
+      } else {
+        $("#travel_mode_span_"+i).find(".label-warning").text("Unavailable");
+      }
+    }
+    totalHoursOnTravel = Math.round(totalTravelTimeInSec / 3600);
+    leftHoursOnTravel = totalHoursOnTravel % 24;
+    totalDaysOnTravel = Math.floor(totalHoursOnTravel / 24);
+    console.log("Total time cost on travel is " + totalDaysOnTravel + " days and " + leftHoursOnTravel + " hours.");
+
+    tripDurationDays = totalDaysOnTravel;
+    tripDistanceMeters = 0;
+    for (var place of places) {
+      tripDurationDays += parseInt(place.daysToStay);
+      tripDistanceMeters += place.travelDistToHereInMeter;
+    }
+    console.log("Total trip is " + tripDurationDays + " days.");
+    // Show obtain_weather_button
+    if ($("#start_date_input").val() != null && places.length > 0){
+      $("#obtain_weather_button").fadeIn("fast");
+    }
+  }
+
+  function clearAllPlaces() {
+    for (var dirDisplay of directionsDisplayArray){
+      dirDisplay.setMap(null);
+    }
+    for (var place of places) {
+      place.marker.setMap(null);
+      place.infowindow.close();
+    }
+    directionsDisplayArray = [];
+    places = [];
+    markers = [];
+    placeNames = [];
+    latLangs = [];
+
+    $("#listOfPlaces").html("");
+    $("#obtain_weather_button").hide();
+  }
+
+  function popUpInfowindowByIndex(index) {
+    places[index].infowindow.open(map, places[index].marker);
+  }
+
+  $(document.body).on("click", ".updateMarkerButton", function(e) {
+      e.preventDefault();
+      var this_ = $(this);
+      var index = parseInt(this_.parent().parent().attr("data-marker-index"));
+      var place = places[index];
+      var form_ = this_.parent().parent()
+
+      place.travelModeToHere = form_.find('.travel_mode_selection').val();
+      place.daysToStay = form_.find('.days_to_stay_input').val();
+      place.marker.infowindow.close();
+  })
+
+  $(document.body).on("click", ".removeMarkerButton", function(e) {
+      e.preventDefault();
+      var this_ = $(this);
+      var index = parseInt(this_.parent().parent().attr("data-marker-index"));
+      // var marker = markers[index];
+      var marker = places[index].marker
+
+      console.log("index: "+index);
+      markers.splice(index, 1 );
+      marker.infowindow.close();
+      marker.setMap(null);
+
+      places.splice(index, 1);
+      marker.infowindow.close();
+      marker.setMap(null);
+
+      // for (var i=index; i<markers.length; i++) {
+      //   markerLat = markers[i].getPosition().lat();
+      //   markerLng = markers[i].getPosition().lng();
+      for (var i=index; i<places.length; i++) {
+        markerLat = places[i].marker.getPosition().lat();
+        markerLng = places[i].marker.getPosition().lng();
+        var newContent = prefix +
+                              'data-marker-index="' + i + '" ' +
+                              'data-marker-lat="' + markerLat + '" ' +
+                              'data-marker-lng="' + markerLng + '" ' +
+                            postfix;
+        // markers[i].infowindow.setContent(newContent);
+        // markers[i].setIcon(iconURLPrefix + (i + 1) + "|" + markerBackgroundColor + "|" + markerNumberColor);
+        places[i].infowindow.setContent(newContent);
+        places[i].marker.setIcon(iconURLPrefix + (i + 1) + "|" + markerBackgroundColor + "|" + markerNumberColor);
+      }
+
+      if (index == 0 && places.length > 0){
+        updateStartPointInfowindow();
+      }
+  })
+
+  function directionServiceFromStartToEnd(){
+    // Generate the route from start point to end point, using DRIVING mode.
+    // Intended to generate a single encoded polyline for the Google static map API use.
+  }
+
+  function googleStaticMapURLGenerator() {
+    // Google states that if markers are provided to static map api, no "center" and "zoom" parameters are needed.
+    // var center = map.getCenter()
+    // center = center.toString().slice(1,-1); // get rid of the parentheses.
+    // var zoom = map.getZoom();
+    // Since there is URL length limitation of the Google static map API, the iconURL for each marker is omitted here.
+    var urlPrefix = "https://maps.googleapis.com/maps/api/staticmap?size=635x450";
+    var urlPostfix = "&key=";
+    var urlMarkers = "";
+    var urlPath = "&path=enc:"
+    $.each(places, function(index, place) {
+      // The regular iconURL cannot be used here, because we need shortened url in the API request.
+      urlMarkers += "&markers=label:" + (index+1) + "%7C" + place.lat + "," + place.lng + "|";
+      urlPath += place.encodedPolyline;
+    });
+    urlMarkers = urlMarkers.slice(0, -1);
+    urlPath = urlPath.slice(0, -1);
+
+    var googleStaticMapURLWithoutKeyParam = urlPrefix + urlMarkers + urlPostfix
+
+    return googleStaticMapURLWithoutKeyParam
+    // $.ajax({
+    //   url: googleStaticMapURL,
+    //   method: "GET",
+    //   success: function(data) {
+    //
+    //   },
+    //   error: function(data) {
+    //     console.log(data.statusText)
+    //     console.log(data.status)
+    //   }
+    // })
+  }
+
+  function submitTrip() {
+    var this_trip = createTripJSON();
+    console.log("Data to send:");
+    console.log(this_trip);
+    // updateTripInfo();
+    // setTimeout(
+      $.ajax({
+        url: "/trip/create/",
+        method: "POST",
+        data: this_trip,
+        success: function(data) {
+          window.location.replace("/trip/");
+        },
+        error: function(data) {
+            console.log(data.statusText)
+            console.log(data.status)
+        }
+      })
+    console.log("Save request sent.")
+  }
+
+  function createTripJSON() {
+    var trip = {};
+    var trip_name = "Trip of {{ user.username }}, starts on " + $("#start_date_input").val();
+    if ($("#trip_name").val() != "") {
+      trip_name = $("#trip_name").val();
+    }
+
+    trip['creator_id']            = {{ user.id }}
+    trip['trip_name']             = trip_name;
+    trip['start_date']            = $("#start_date_input").val();
+    trip['number_of_people']      = 1,
+    trip['total_distance_meters'] = tripDistanceMeters;
+    trip['total_duration_days']   = tripDurationDays;
+    trip['time_on_travel_hours']  = totalHoursOnTravel;
+    trip['friends']               = [];
+    trip['places']                = [];
+    trip['googleStaticMapURLWithoutKeyParam'] = googleStaticMapURLGenerator();
+    for (var place of places) {
+      trip['places'].push(createPlaceJSON(place));
+    }
+
+    console.log("trip object created")
+    return JSON.stringify(trip);
+  }
+
+  function createPlaceJSON(place) {
+    var placeJSON = {};
+
+    placeJSON['latLng']                       = place.latLng;
+    placeJSON['displayed_name']               = place.name;
+    placeJSON['days_to_stay']                 = place.daysToStay;
+    placeJSON['travel_mode_to_here']          = place.travelModeToHere;
+    placeJSON['travel_time_to_here_sec']      = place.travelTimeToHereInSec;
+    placeJSON['travel_time_to_here_text']     = place.travelTimeToHereInText;
+    placeJSON['travel_dist_to_here_meter']    = place.travelDistToHereInMeter;
+    placeJSON['travel_dist_to_here_text']     = place.travelDistToHereInText;
+    placeJSON['weather_arrival']              = place.weatherArrival;
+    placeJSON['weather_departure']            = place.weatherDeparture;
+
+    // console.log("place object created")
+    return JSON.stringify(placeJSON);
+  }
+
+  // Handle csrf issue when sending POST requests using AJAX.
+  function getCookie(name) {
+    var cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        var cookies = document.cookie.split(';');
+        for (var i = 0; i < cookies.length; i++) {
+            var cookie = jQuery.trim(cookies[i]);
+            // Does this cookie string begin with the name we want?
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+  }
+  var csrftoken = getCookie('csrftoken');
+
+  function csrfSafeMethod(method) {
+    // these HTTP methods do not require CSRF protection
+    return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+  }
+  $.ajaxSetup({
+      beforeSend: function(xhr, settings) {
+          if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+              xhr.setRequestHeader("X-CSRFToken", csrftoken);
+          }
+      }
+  });
+
+  // Set start_date_input default value
+  document.getElementById('start_date_input').valueAsDate = new Date();
+
+
+
+  // $(document.body).on("click", ".closeMarkerButton", function(e) {
+  //     e.preventDefault();
+  //     var this_ = $(this);
+  //     var index = parseInt(this_.parent().parent().attr("data-marker-index"));
+  //     console.log(index)
+  //     // markers[index].infowindow.close();
+  //     places[index].marker.infowindow.close();
+  // })
+
+  // function generateRoute() {
+  //   placeNames = [];
+  //   latLngs = [];
+  //   var latlng;
+  //
+  //   $.each(markers, function(index, marker) {
+  //     latlng = {lat: marker.getPosition().lat(), lng: marker.getPosition().lng()}
+  //
+  //     geocoder.geocode({'location': latlng}, function(results, status) {
+  //       if (status === 'OK') {
+  //         if (results[1]) {
+  //           console.log(results[1])
+  //           var locality  = "";   // Incorporated city/town name.
+  //           var adminLvl2 = "";   // County name;
+  //           var adminLvl1 = "";   // State name.
+  //           var address = "";
+  //
+  //           for (var obj of results[1]['address_components']) {
+  //             switch (obj['types'][0]) {
+  //               case 'locality':
+  //                 locality = obj['long_name'];
+  //                 break;
+  //
+  //               case 'administrative_area_level_2':
+  //                 adminLvl2 = obj['long_name'];
+  //                 break;
+  //
+  //               case 'administrative_area_level_1':
+  //                 adminLvl1 = obj['short_name'];
+  //             }
+  //             address = locality? locality: adminLvl2;
+  //             address += ", "+adminLvl1;
+  //
+  //             if (adminLvl1 && (locality || adminLvl2)) {
+  //               console.log(address);
+  //               placeNames.push(address);
+  //               latLngs.push(latLng);
+  //               break;
+  //             } else {
+  //               address = "Unknown place";
+  //             }
+  //           }
+  //         } else {
+  //           window.alert('No results found');
+  //         }
+  //       } else {
+  //         window.alert('Geocoder failed due to: ' + status);
+  //       }
+  //     });
+  //   })
+  //   setTimeout(updateTripInfo, 600);    // If updateTripInfo() runs with no delay, it will be executed before the for loop above....
+  // }
+
+    // function sync() {
+    //   if (places.length > 1 && places.length == directionsLegsArray.length+1){
+    //     for (var i=1; i<places.length; i++) {
+    //       // Sync places[] and directionsLegsArray[]
+    //       var leg = directionsLegsArray[i];
+    //       if (leg != null) {
+    //         places[i].travelDistToHereInText    = leg['distance']['text'];
+    //         places[i].travelDistToHereInMeter   = leg['distance']['value'];
+    //         places[i].travelTimeToHereInText    = leg['duration']['text'];
+    //         places[i].travelTimeToHereInSec     = leg['duration']['value'];
+    //       } else {
+    //         places[i].travelDistToHereInText = "Unknown";
+    //         places[i].travelTimeToHereInText = "Unknown";
+    //       }
+    //     }
+    //     setTimeout(updateTravelTimeText, 550);
+    //   }
+    // }
+</script>
+
+<script async defer
+src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAEKyPtuFyornsBzFkF1pUWEHPSy3bVr9o&callback=initMap">
+</script>
+
+{% endblock content %}
