@@ -179,10 +179,11 @@ DATABASES['default'].update(db_from_env)
 # STATICFILES_STORAGE = 'storages.backends.s3boto.S3BotoStorage'
 
 ############
-from tripplanner.aws.conf import *
+# from tripplanner.aws.conf import *
 
 ############
 # set S3 as the place to store your files.
+# from tripplanner.custom_storages import *
 DEFAULT_FILE_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
 STATICFILES_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
 AWS_ACCESS_KEY_ID = os.environ["AWS_ACCESS_KEY_ID"]
@@ -191,9 +192,11 @@ AWS_STORAGE_BUCKET_NAME = "tripflask-asset"
 AWS_QUERYSTRING_AUTH = False #This will make sure that the file URL does not have unnecessary parameters like your access key.
 AWS_S3_CUSTOM_DOMAIN = AWS_STORAGE_BUCKET_NAME + '.s3.amazonaws.com'
 #static media settings
+# STATICFILES_STORAGE = 'custom_storages.StaticStorage'
+# STATIC_URL = 'https://' + AWS_STORAGE_BUCKET_NAME + '.s3.amazonaws.com/'+'static/'
 STATIC_URL = 'https://' + AWS_STORAGE_BUCKET_NAME + '.s3.amazonaws.com/'
 MEDIA_URL = STATIC_URL + 'media/'
-STATICFILES_DIRS = (os.path.join(BASE_DIR, "static-storage"))
+STATICFILES_DIRS = (os.path.join(BASE_DIR, "static-storage"),)
 STATIC_ROOT = "static-serve"
 ADMIN_MEDIA_PREFIX = STATIC_URL + 'admin/'
 STATICFILES_FINDERS = (
