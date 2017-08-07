@@ -15,6 +15,7 @@ from .models import Trip, PlaceVisited, TravelMode
 # from .forms import TripModelForm
 from .mixins import FormUserNeededMixin
 
+import time
 import json
 import ast                  # Convert string to dict
 import requests
@@ -107,7 +108,7 @@ class TripCreateView(FormUserNeededMixin, CreateView):
             response = requests.get(googleStaticMapURL)
             if response.status_code == 200:
                 # print("status_code == 200")
-                image_filename_prefix = request.user.username + "," + data['start_time'] + "," + data['trip_name']
+                image_filename_prefix = request.user.username + "," + data['start_time'] + "," + str(time.time())
                 image_content = ContentFile(response.content)
                 # path = default_storage.save('tmp/'+GENERATED_IMAGE_NAME, response.content)
                 # image = os.path.join(settings.MEDIA_ROOT, path)
