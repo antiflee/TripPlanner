@@ -784,6 +784,7 @@
   function loadOldData() {
     places = [];
     {% for place in trip.get_place_visted_list %}
+      console.log("{{ place.name }}")
       var marker = new google.maps.Marker({
         position: {lat: {{ place.lat }}, lng: {{ place.lng }}},
         map: map,
