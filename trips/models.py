@@ -119,7 +119,7 @@ class Trip(models.Model):
         return str(num) + " people" if num > 1 else "1 person"
 
     def get_place_visted_list(self):
-        return PlaceVisited.objects.filter(trip=self)
+        return PlaceVisited.objects.filter(trip=self).order_by("time_arrival")
 
     def get_start_date_yyyymmdd(self):
         return datetime.strftime(self.start_time, "%Y-%m-%d")

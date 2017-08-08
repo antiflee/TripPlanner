@@ -39,6 +39,7 @@ class TripDetailView(DetailView):
         trip = get_object_or_404(Trip, pk=pk)
         if trip:
             places = trip.get_place_visted_list()
+            # print(places[::-1])
             if request.user.is_authenticated and request.user.trips_liked.filter(pk=pk).exists():
                 # print("Already liked")
                 liked = True
