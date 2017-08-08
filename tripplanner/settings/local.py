@@ -88,8 +88,12 @@ WSGI_APPLICATION = 'tripplanner.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'tripflaskdb',
+        'USER': os.environ['DATABASE_USER'],
+        'PASSWORD': os.environ['TRIPFLASKDB_PASSWORD'],
+        'HOST': 'tripflaskdb.ccpa4e4vnolm.us-east-2.rds.amazonaws.com',
+        'PORT': '5432',
     }
 }
 
