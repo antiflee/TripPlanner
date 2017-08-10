@@ -196,7 +196,7 @@
       top: 14px;
       cursor: pointer;
       color: darkgreen;
-      opacity: 0;
+      /*opacity: 0;*/
     }
 
     .collapse_place_tag_icon {
@@ -729,6 +729,8 @@
           this.lat                        = marker.getPosition().lat();
           this.lng                        = marker.getPosition().lng();
           this.latLng                     = {lat: marker.getPosition().lat(), lng: marker.getPosition().lng()};
+          this.placeId                    = "";
+          this.formattedAddress           = "";
           this.name                       = "Unknown.";
           this.customName                 = "";
           this.showSuggestedName          = false;
@@ -778,6 +780,11 @@
     geocoder.geocode({'location': latLng}, function(results, status) {
       if (status === 'OK') {
         if (results[1]) {
+          console.log(results[1])
+          if (results[1]['place_id'] != "" && results[1]['place_id'] != undefined) {
+            this_.placeId = results[1]['place_id']
+            this_.setPlaceDetails();
+          }
           for (var obj of results[1]['address_components']) {
             switch (obj['types'][0]) {
               case 'establishment':
@@ -812,6 +819,7 @@
           }
           this_.name = address;
           this_.customName = this_.customName || address;
+          this_.formattedAddress = results[1]['formatted_address']
           updateAllPlaceTags();
         } else {
           window.alert('No results found');
@@ -840,6 +848,16 @@
       updateAllPlaceTags();
       addingPlaceAllowed = true;
     });
+  }
+
+  Place.prototype.setPlaceDetails = function() {
+    var this_ = this;
+    var service = new google.maps.places.PlacesService(map);
+    service.getDetails({placeId: this_.placeId}, function(place, status) {
+      if (status === google.maps.places.PlacesServiceStatus.OK) {
+        console.log(place)
+      }
+    })
   }
 
   Place.prototype.setTravelInfo = function(autoFillTimeArrivalDeparture) {
@@ -2470,8 +2488,10 @@
     var placeJSON = {};
 
     placeJSON['latLng']                       = place.latLng;
+    placeJSON['place_id']                     = place.placeId
     placeJSON['name']                         = place.name;
     placeJSON['custom_name']                  = place.customName;
+    placeJSON['formatted_address']            = place.formattedAddress
     placeJSON['show_suggested_name']          = place.showSuggestedName;
     placeJSON['time_zone']                    = {
                                                   dstOffset: place.timeZone.dstOffset,
@@ -2551,11 +2571,11 @@
   // Hover effects for the icons to the right of place list.
 
   $(document.body).on("mouseover", ".place-tag-div", function(e){
-    $(this).find(".remove_place_icon, .add_note_icon, .reset_arrival_time_icon, .departure-pin-icon, .duration-pin-icon, " +
+    $(this).find(".remove_place_icon, .reset_arrival_time_icon, .departure-pin-icon, .duration-pin-icon, " +
                 ".auto_set_time_hereafter_icon").css("opacity", 1);
   });
   $(document.body).on("mouseout", ".place-tag-div", function(e){
-    $(this).find(".remove_place_icon, .add_note_icon, .reset_arrival_time_icon, .departure-pin-icon, .duration-pin-icon, " +
+    $(this).find(".remove_place_icon, .reset_arrival_time_icon, .departure-pin-icon, .duration-pin-icon, " +
                 ".auto_set_time_hereafter_icon").css("opacity", 0);
   });
 
@@ -2694,7 +2714,7 @@
 
 {% block script %}{% endblock %}
 <script async defer
-src="https://maps.googleapis.com/maps/api/js?key={{ APIKEY }}&callback=initMap&libraries=geometry">
+src="https://maps.googleapis.com/maps/api/js?key={{ APIKEY }}&callback=initMap&libraries=geometry,places">
 </script>
 
 </body>
