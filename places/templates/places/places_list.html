@@ -108,7 +108,7 @@
 
     </div>
     <div class="text-center">
-      <a href="#" id='loadmore'><h4>Load More Places</h4></a>
+      <a href="#" id='loadmore'><h4>Loading Places</h4></a>
     </div>
   </div>
 
@@ -145,7 +145,8 @@ function loadPlaceContainer(placeContainerID, q_, sort_by, url_){
   } else {
     placeContainer = $("#place-container")
   }
-
+  
+	$("#loadmore").css("display", "inline");
   placeContainer.html("")
   var initialURL = placeContainer.attr("data-url") || "/api/place/";
 

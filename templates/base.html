@@ -136,7 +136,8 @@
 			tripContainer = $("#trip-container")
 		}
 
-		tripContainer.html("")
+		$("#loadmore").css("display", "inline");
+		tripContainer.html("");
 		var initialURL = tripContainer.attr("data-url") || "/api/trip/";
 
 		function parseTrip() {
@@ -200,6 +201,7 @@
 					tripList = data.results;
 					// console.log(data.results)
 					if (data.next){
+						$("#loadmore").css("display", "inline");
 						nextTripUrl = data.next;
 					} else {
 						$("#loadmore").css("display", "none")
