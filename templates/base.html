@@ -202,10 +202,10 @@
 					// console.log(data.results)
 					if (data.next){
 						$("#loadmore").css("display", "inline");
-						nextTripUrl = data.next;
 					} else {
 						$("#loadmore").css("display", "none")
 					}
+					nextTripUrl = data.next;
 					parseTrip()
 				},
 				error: function(data) {

@@ -145,7 +145,7 @@ function loadPlaceContainer(placeContainerID, q_, sort_by, url_){
   } else {
     placeContainer = $("#place-container")
   }
-  
+
 	$("#loadmore").css("display", "inline");
   placeContainer.html("")
   var initialURL = placeContainer.attr("data-url") || "/api/place/";
@@ -199,10 +199,11 @@ function loadPlaceContainer(placeContainerID, q_, sort_by, url_){
       success: function(data) {
         placeList = data.results;
         if (data.next){
-          nextPlaceUrl = data.next;
+					$("#loadmore").css("display", "inline");
         } else {
           $("#loadmore").css("display", "none")
         }
+        nextPlaceUrl = data.next;
         parsePlace()
       },
       error: function(data) {
