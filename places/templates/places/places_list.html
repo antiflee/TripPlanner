@@ -146,7 +146,7 @@ function loadPlaceContainer(placeContainerID, q_, sort_by, url_){
     placeContainer = $("#place-container")
   }
 
-	$("#loadmore").css("display", "inline");
+	$("#loadmore").css("display", "inline").unbind();
   placeContainer.html("")
   var initialURL = placeContainer.attr("data-url") || "/api/place/";
 

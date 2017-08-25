@@ -26,10 +26,10 @@
     <div class="col-sm-7">
       <ul class="nav nav-tabs" role="tablist">
         <li class="nav-item">
-          <a class="nav-link active" id="tab-1" data-toggle="tab" href="#" onclick="loadTripContainer('trip-container', '', 'created_time')">New Trips</a>
+          <a class="nav-link active" id="tab-1" data-toggle="tab" href="#">New Trips</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" id="tab-2" data-toggle="tab" href="#" onclick="loadTripContainer('trip-container', '', 'likes')">Popular</a>
+          <a class="nav-link" id="tab-2" data-toggle="tab" href="#">Popular</a>
         </li>
         <!-- <li class="nav-item">
           <a class="nav-link" id="tab-3" data-toggle="tab" href="#">Recommended</a>
@@ -69,6 +69,14 @@
     loadTripContainer("trip-container", "", sort_by);
     $("#toggle_looking_for_partner_button").toggleClass("btn-primary")
   }
+
+  $(document.body).on("click","#tab-1", function(e) {
+    loadTripContainer('trip-container', '', 'created_time');
+  })
+
+  $(document.body).on("click","#tab-2", function(e) {
+    loadTripContainer('trip-container', '', 'likes');
+  })
 </script>
 
 {% endblock content %}

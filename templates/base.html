@@ -127,7 +127,7 @@
 			sort = sort_by;
 		}
 		tripList = [];
-		var nextTripUrl;
+		var nextTripUrl = null;
 		var initialURL = "/api/trip/";
 		var tripContainer;
 		if (tripContainerID) {
@@ -136,7 +136,7 @@
 			tripContainer = $("#trip-container")
 		}
 
-		$("#loadmore").css("display", "inline");
+		$("#loadmore").css("display", "inline").unbind();
 		tripContainer.html("");
 		var initialURL = tripContainer.attr("data-url") || "/api/trip/";
 
@@ -186,7 +186,6 @@
 
 		function fetchTrips(url){
 			fetchUrl = url || initialURL
-			// console.log(trips_this_user_liked)
 			$.ajax({
 				url: fetchUrl,
 				data: {
