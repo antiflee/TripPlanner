@@ -1,0 +1,171 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+	{% block meta %}
+	{% endblock %}
+	<title>Trip Planner</title>
+	<link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+	<link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+	<link href="https://fonts.googleapis.com/css?family=Lato" rel="stylesheet">
+	<link rel="icon" type="image/png" href="{% static 'home/images/logo-darker.png' %}" />
+	<style media="screen">
+		body {
+			font-family: "Lato", Georgia, serif;
+		}
+
+		h1 {
+			margin-top: 5px;
+		}
+
+    h3 {
+      color: darkred;
+      margin-bottom: 15px;
+    }
+
+    p, li {
+      font-size: 1.15em;
+    }
+
+		.navbar-inverse {
+			background: #2c3e50;
+			font-size: 120%;
+		}
+
+		.navbar-inverse .navbar-nav>li>a {
+			color: white;
+		}
+
+		.navbar-inverse .navbar-nav>li>a:hover {
+			background: #242424;
+		}
+
+		.navbar-inverse .navbar-brand {
+			color: white;
+		}
+
+		.nav.nav-tabs .nav-item a {
+			border-radius: 1px;
+		}
+
+    .api-url {
+      color: cornflowerblue;
+    }
+
+    .query-param {
+      color: cadetblue;
+    }
+
+		#logo {
+			padding: 0;
+			position: relative;
+			top: 2px;
+		}
+
+		#messagewindow {
+			position: fixed;
+			margin: auto;
+			width: 500px;
+			margin: 10px auto;
+			left: 0;
+			right: 0;
+			display: none;
+			z-index: 3;
+		}
+
+    #navbar-search-box-list-item {
+      display: none;
+    }
+
+	  #search-clear-button {
+	    position: absolute;
+	    right: 12px;
+	    top: 0;
+	    bottom: 0;
+	    height: 14px;
+	    margin: auto;
+	    font-size: 14px;
+	    cursor: pointer;
+	    color: #ccc;
+			display: none;
+	  }
+
+	</style>
+	  {% block styles %}
+	  {% endblock %}
+</head>
+<body>
+	{% include 'navbar.html' %}
+	<div class="alert alert-success" id="messagewindow">
+		Some text goes here.
+	</div>
+  <div class="container">
+    <h2>API DOCUMENTATION</h2>
+
+    <hr>
+    <h3>Introduction</h3>
+      <p>
+        This API provides a simple search service for the content hosted on this website.
+        It is implemented via Django REST framework.
+      </p>
+      <p>Note that: </p>
+      <li>No API key needed.</li>
+      <li>The "trip" and "place" in the urls are singular.</li>
+      <li>Pagination is implemented. 9 results on each page.</li>
+      <li>
+        The "encoded_polyline" string in the return trip indicates the route between two places
+        shown on the map. For more detailed information, see
+        <a target="_blank" href="https://developers.google.com/maps/documentation/javascript/geometry">Google's documentation</a>.
+        Note that the backslash "\" in the returned polyline string was converted to "\\" when saved to database.
+        So you need to use regex to replace them back to correctly show the polyline on map.
+        For example, in javascript, use <span class="query-param">"{the encoded polyline}".replace(/\\\\/g, "\\")</span>.
+      </li>
+
+    <hr>
+    <h3>Endpoints</h3>
+      <p>
+        <span class="api-url">tripflask.herokuapp.com/api/trip/</span>
+          Returns a list of trips.
+      </p>
+      <p>
+        <span class="api-url">tripflask.herokuapp.com/api/place/</span>
+          Returns a list of places.
+      </p>
+      <p>
+        <span class="api-url">tripflask.herokuapp.com/api/{username}/trip</span>
+          Returns a list of trips created by a specific user.
+      </p>
+
+    <hr>
+    <h3>Parameters</h3>
+      <p>
+        <span class="query-param">q</span>
+        : search for trips/places where titles/names contain the keyword.
+      </p>
+      <p>
+        <span class="query-param">sort</span>
+        : only available for trips query.
+        Sort the returned trips/places list. Options: "likes", "created_time"
+      </p>
+      <p>
+        <span class="query-param">looking_for_partner</span>
+        : only available for trips query.
+        default "false". If set "true", only returns trips that are looking for partners.
+      </p>
+      <p>
+        <span class="query-param">place_id</span>
+        : only available for trips query.
+        Returns trips that pass through a specific place.
+        The id of a place can be found from the place API.
+        Sorry for the inconvenience!
+      </p>
+
+    <hr>
+    <h3>Examples</h3>
+      <p class="api-url">tripflask.herokuapp.com/api/trip/?q=ant&sort=likes&looking_for_partner=true</p>
+      <p class="api-url">tripflask.herokuapp.com/api/place/?q=atl</p>
+      <p class="api-url">tripflask.herokuapp.com/api/axe/trip/?q=29</p>
+  </div>
+  <br><br>
+</body>
+</html>

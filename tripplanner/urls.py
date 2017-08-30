@@ -20,7 +20,7 @@ from django.conf.urls import include
 from django.conf.urls.static import static
 
 from accounts.views import UserRegisterView
-from .views import home
+from .views import home, apidoc
 
 urlpatterns = [
     url(r'^antiflee/', admin.site.urls),
@@ -28,6 +28,7 @@ urlpatterns = [
     url(r'^register/$', UserRegisterView.as_view(), name='register'),
     url(r'^', include('django.contrib.auth.urls')),
     url(r'^profiles/', include('accounts.urls', namespace='profiles')),
+    url(r'^apidoc/$', apidoc, name='apidoc'),
     url(r'^api/trip/', include('trips.api.urls', namespace='trip-api')),
     url(r'^api/place/', include('places.api.urls', namespace='place-api')),
     url(r'^api/', include('accounts.api.urls', namespace='profiles-api')),
