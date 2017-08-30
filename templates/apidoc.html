@@ -54,6 +54,8 @@
 
     .query-param {
       color: cadetblue;
+      font-weight: bold;
+      font-size: 1.15em;
     }
 
 		#logo {
@@ -100,7 +102,7 @@
 		Some text goes here.
 	</div>
   <div class="container">
-    <h2>API DOCUMENTATION</h2>
+    <h2>API Documentation</h2>
 
     <hr>
     <h3>Introduction</h3>
@@ -110,6 +112,7 @@
       </p>
       <p>Note that: </p>
       <li>No API key needed.</li>
+      <li>Currently only JSON format is supported.</li>
       <li>The "trip" and "place" in the urls are singular.</li>
       <li>Pagination is implemented. 9 results on each page.</li>
       <li>
@@ -117,8 +120,8 @@
         shown on the map. For more detailed information, see
         <a target="_blank" href="https://developers.google.com/maps/documentation/javascript/geometry">Google's documentation</a>.
         Note that the backslash "\" in the returned polyline string was converted to "\\" when saved to database.
-        So you need to use regex to replace them back to correctly show the polyline on map.
-        For example, in javascript, use <span class="query-param">"{the encoded polyline}".replace(/\\\\/g, "\\")</span>.
+        So to show the polyline on map, you need to use regex to switch them back.
+        For example, in javascript, use <span style="color:cadetblue">"{the encoded polyline}".replace(/\\\\/g, "\\")</span>.
       </li>
 
     <hr>
@@ -140,29 +143,34 @@
     <h3>Parameters</h3>
       <p>
         <span class="query-param">q</span>
-        : search for trips/places where titles/names contain the keyword.
+        <br>
+        Search for trips/places where titles/names contain the keyword.
       </p>
       <p>
         <span class="query-param">sort</span>
-        : only available for trips query.
-        Sort the returned trips/places list. Options: "likes", "created_time"
+        <br>
+        Only available for trips query.
+        Sort the returned trips/places list. Options: "likes", "created_time".
       </p>
       <p>
         <span class="query-param">looking_for_partner</span>
-        : only available for trips query.
+        <br>
+        Only available for trips query.
         default "false". If set "true", only returns trips that are looking for partners.
       </p>
       <p>
         <span class="query-param">place_id</span>
-        : only available for trips query.
-        Returns trips that pass through a specific place.
-        The id of a place can be found from the place API.
-        Sorry for the inconvenience!
+        <br>
+        Only available for trips query.
+        Returns all trips that pass by a specific place.
+        The id of a place can be found from the place API, or the URL of the place page
+        (e.g., the id of <a href="https://tripflask.herokuapp.com/place/2/">Atlanta</a> is 2).
+        The query by city name may be implemented soon. Sorry for the inconvenience!
       </p>
 
     <hr>
     <h3>Examples</h3>
-      <p class="api-url">tripflask.herokuapp.com/api/trip/?q=ant&sort=likes&looking_for_partner=true</p>
+      <p class="api-url">tripflask.herokuapp.com/api/trip/?q=ant&sort=likes&looking_for_partner=true&place_id=2</p>
       <p class="api-url">tripflask.herokuapp.com/api/place/?q=atl</p>
       <p class="api-url">tripflask.herokuapp.com/api/axe/trip/?q=29</p>
   </div>
